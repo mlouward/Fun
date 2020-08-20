@@ -1,4 +1,8 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.Diagnostics;
+using System.Linq;
+using System.Net.Security;
 
 namespace N_puzzle
 {
@@ -14,12 +18,17 @@ namespace N_puzzle
             }
             return res;
         }
-        private static void Main(string[] args)
+
+        private static void Solve(string test)
         {
-            string test = StringToBitmask("1 3 6 4 9 5 2 8 7");
             Board b = new Board(test);
             Console.WriteLine(b);
-            Console.WriteLine(b.Fitness());
+            b.SelectChildren();
+        }
+
+        private static void Main(string[] args)
+        {
+            Solve(StringToBitmask("1 3 6 4 9 5 2 8 7"));
             Console.ReadKey();
         }
     }
