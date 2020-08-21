@@ -61,6 +61,17 @@ namespace N_puzzle
             return s;
         }
 
+        public static string StringToBitmask(string s)
+        {
+            string res = "";
+            var tab = s.Split(' ');
+            foreach (string item in tab)
+            {
+                res += Convert.ToString(int.Parse(item), 2).PadLeft(5, '0');
+            }
+            return res;
+        }
+
         public int GetFitness()
         {
             int res = 0;
@@ -94,11 +105,6 @@ namespace N_puzzle
             return copy;
         }
 
-        public Dictionary<Board, int> SelectChildren(int count=2)
-        {
-            return GetChildren().ToDictionary(k => k, v => v.Fitness).OrderBy(c => c.Value).Take(count)
-                .ToDictionary(k => k.Key, v => v.Value);
-        }
         public List<Board> GetChildren()
         {
             List<Board> children = new List<Board>();
@@ -122,5 +128,12 @@ namespace N_puzzle
             }
             return children;
         }
+
+        public Dictionary<Board, int> SelectChildren(List<Board> children, int count = 2)
+        {
+            return children.ToDictionary(k => k, v => v.Fitness).OrderBy(c => c.Value).Take(count)
+                .ToDictionary(k => k.Key, v => v.Value);
+        }
+
     }
 }
