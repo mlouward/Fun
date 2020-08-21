@@ -7,9 +7,9 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ReversePolishNotation", "Re
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "HackerrankStacksQueues", "HackerrankStacksQueues\HackerrankStacksQueues.csproj", "{25FB6374-D382-49DA-823E-BCBFE3F4A5C9}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "N-puzzle", "N-puzzle\N-puzzle.csproj", "{44930452-4AFB-4293-9F40-97D0A3B98DD7}"
-EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MCTS", "MCTS\MCTS.csproj", "{461D4483-0F39-4686-A795-5202D2008062}"
+EndProject
+Project("{888888A0-9F3D-457C-B088-3A5042F75D52}") = "N Puzzle Python", "N Puzzle Python\N Puzzle Python.pyproj", "{259AC60F-0F8B-4AE7-B2C0-747CF08A59F5}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -25,14 +25,12 @@ Global
 		{25FB6374-D382-49DA-823E-BCBFE3F4A5C9}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{25FB6374-D382-49DA-823E-BCBFE3F4A5C9}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{25FB6374-D382-49DA-823E-BCBFE3F4A5C9}.Release|Any CPU.Build.0 = Release|Any CPU
-		{44930452-4AFB-4293-9F40-97D0A3B98DD7}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{44930452-4AFB-4293-9F40-97D0A3B98DD7}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{44930452-4AFB-4293-9F40-97D0A3B98DD7}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{44930452-4AFB-4293-9F40-97D0A3B98DD7}.Release|Any CPU.Build.0 = Release|Any CPU
 		{461D4483-0F39-4686-A795-5202D2008062}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{461D4483-0F39-4686-A795-5202D2008062}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{461D4483-0F39-4686-A795-5202D2008062}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{461D4483-0F39-4686-A795-5202D2008062}.Release|Any CPU.Build.0 = Release|Any CPU
+		{259AC60F-0F8B-4AE7-B2C0-747CF08A59F5}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{259AC60F-0F8B-4AE7-B2C0-747CF08A59F5}.Release|Any CPU.ActiveCfg = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
