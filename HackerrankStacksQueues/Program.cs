@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.IO;
 using System.Linq;
 
@@ -151,16 +150,26 @@ namespace HackerrankStacksQueues
             return count;
         }
 
+        private static int PrimeCount(ulong n)
+        {
+            uint[] prime = new uint[16] { 2, 3, 5, 7, 11, 13, 17, 19, 23, 29, 31, 37, 41, 43, 47, 53 };
+            if (n < 2)
+                return 0;
+            ulong mult = 1;
+            int i = 0;
+            while (n >= mult && i < 16)
+            {
+                mult *= prime[i];
+                i++;
+            }
+            return i - 1;
+        }
+
         private static void Main(string[] args)
         {
             var tests = Util();
-            Stopwatch s = new Stopwatch();
 
-            s.Start();
-            Console.WriteLine(EqualStacks(tests[0], tests[1], tests[2]));
-            s.Stop();
 
-            Console.WriteLine(s.ElapsedMilliseconds + "ms");
             Console.ReadKey();
         }
     }
