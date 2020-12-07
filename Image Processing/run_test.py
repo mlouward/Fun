@@ -96,9 +96,9 @@ if __name__ == "__main__":
     size = 11
 
     s = time.time()
-    base_image, matrix = create_image(sys.argv[1])
+    base_image_bw, matrix, image = create_image(sys.argv[1])
     print("Conversion time:", time.time() - s)
-    # base_image.show()
+    # base_image_bw.show()
 
     kernel = gaussian_blur(size)
     s = time.time()
@@ -123,7 +123,7 @@ if __name__ == "__main__":
     gauss_sobel = Image.fromarray(new_mat)
     # gauss_sobel.show(title=f"After blur ({size})")
 
-    to_show = [base_image, gauss, sobel, gauss_sobel]
+    to_show = [image, gauss, sobel, gauss_sobel]
     show_images(to_show, 2,
                 ["Base", f"Gaussian blur ({size})",
                  "Sobel on base", f"Sobel on {size}-Gaussian"])
