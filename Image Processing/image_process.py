@@ -10,16 +10,16 @@ def create_image(path):
     Convert an input image to a squared, 2D grayscale matrix
     """
     image = Image.open(path)
-    image = image.convert("L")
-    size = int(min(image.width, image.height))
-    matrix = np.asarray(image)
-    return image, matrix
+    image_bw = image.convert("L")
+    size = int(min(image_bw.width, image_bw.height))
+    matrix = np.asarray(image_bw)
+    return image_bw, matrix, image
 
 def gaussian_blur(kernel_size, verbose=False):
     """
     Returns the gaussian kernel matrix of given size with appropriate sigma
     """
-    return _gaussian_kernel(kernel_size, sigma=(kernel_size-1)/6, verbose=verbose)
+    return _gaussian_kernel(kernel_size, sigma=(kernel_size-1)/18, verbose=verbose)
 
 def _gaussian_kernel(size, sigma, verbose=False):
     kernel_1D = np.linspace(-(size // 2), size // 2, size)
