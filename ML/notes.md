@@ -37,4 +37,4 @@ Logistic regression focuses on **maximizing the likelihood**. The farther the da
 An SVM tries to find the separating hyperplane that maximizes the distance of the **closest points** to the margin (the support vectors). If a point is not a support vector, it doesn’t really matter.  
 SVM can use nonlinear kernels if data can't be split linearly
   
-We can express [SVM as a derivation of LR](http://www.cs.toronto.edu/~kswersky/wp-content/uploads/svm_vs_lr.pdf#page=7)
+We can express [SVM as a derivation of LR](http://www.cs.toronto.edu/~kswersky/wp-content/uploads/svm_vs_lr.pdf#page=7).
