@@ -11,7 +11,7 @@ Variance error comes from the **variability of the data**. High variance leads t
 &#xfeff;          |     Low Bias    |    High Bias
 ------------------|-----------------|----------------
 **Low Variance**  |  *Ideal model*  |**Underfitting**
-**High Variance** | **Overfitting** |   *Very bad*
+**High Variance** | **Overfitting** |    Very bad
 
 2. #### L1 and L2 regularization
 
@@ -38,3 +38,7 @@ An SVM tries to find the separating hyperplane that maximizes the distance of th
 SVM can use nonlinear kernels if data can't be split linearly
   
 We can express [SVM as a derivation of LR](http://www.cs.toronto.edu/~kswersky/wp-content/uploads/svm_vs_lr.pdf#page=7).
+
+4. #### Basic fully-connected Neural network using NumPy
+
+See `neural_net.py`
