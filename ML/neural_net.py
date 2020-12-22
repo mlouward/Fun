@@ -1,8 +1,4 @@
-import sys
-from types import new_class
-from typing import NewType
 import numpy as np
-import matplotlib.pyplot as plt
 
 
 def sigmoid(x):
