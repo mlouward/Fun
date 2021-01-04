@@ -14,6 +14,8 @@ public class NetworkConnector : MonoBehaviourPunCallbacks
     public override void OnConnectedToMaster()
     {
         Debug.Log("Connected to photon!");
+        // Try to join a random room
+        PhotonNetwork.JoinRandomRoom();
     }
 
     public override void OnDisconnected(DisconnectCause cause)
@@ -22,4 +24,23 @@ public class NetworkConnector : MonoBehaviourPunCallbacks
     }
 
     #endregion Pun Callbacks
+
+    #region RandomRoom
+
+    public override void OnJoinRandomFailed(short returnCode, string message)
+    {
+        // Failed to connect to random, probably because none exist
+        Debug.Log(message);
+
+        // Create a new room
+        PhotonNetwork.CreateRoom("Lobby");
+        Debug.Log("Created Lobby");
+    }
+
+    public override void OnJoinedRoom()
+    {
+        Debug.Log($"{PhotonNetwork.CurrentRoom.Name} joined!");
+    }
+
+    #endregion RandomRoom
 }
