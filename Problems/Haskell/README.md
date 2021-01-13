@@ -16,4 +16,4 @@ A Scheme (LISP dialect) interpreter building walkthrough in Haskell.
 
 4. [Write you a Scheme 2.0](https://wespiser.com/writings/wyas/00_overview.html)
 
-Revised version of precedente resource
+Revised version of precedent resource
