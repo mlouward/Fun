@@ -18,8 +18,8 @@ A Scheme (LISP dialect) interpreter building walkthrough in Haskell.
 
 Revised version of precedent resource
 
-5. Spend 3 hours on trying to understand [monads](http://blog.sigfpe.com/2006/08/you-could-have-invented-monads-and.html) in functional programming 
+5. Spend 3 hours on trying to understand [\[1\] monads](http://blog.sigfpe.com/2006/08/you-could-have-invented-monads-and.html) in functional programming 
 
-[\[images\]](https://adit.io/posts/2013-04-17-functors,_applicatives,_and_monads_in_pictures.html), 
-[\[JavaScript comparison\]](https://blog.jcoglan.com/2011/03/05/translation-from-haskell-to-javascript-of-selected-portions-of-the-best-introduction-to-monads-ive-ever-read/), 
-[\[stackoverflow answer\]](https://stackoverflow.com/questions/2704652/monad-in-plain-english-for-the-oop-programmer-with-no-fp-background/2704795#2704795)
+[[2] images](https://adit.io/posts/2013-04-17-functors,_applicatives,_and_monads_in_pictures.html),   
+[[3] JavaScript translation of [1]](https://blog.jcoglan.com/2011/03/05/translation-from-haskell-to-javascript-of-selected-portions-of-the-best-introduction-to-monads-ive-ever-read/),   
+[[4] stackoverflow answer](https://stackoverflow.com/questions/2704652/monad-in-plain-english-for-the-oop-programmer-with-no-fp-background/2704795#2704795)
