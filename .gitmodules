@@ -1,0 +1,6 @@
+[submodule "Problems/Haskell/Problems/Haskell/scheme_v2"]
+	path = Problems/Haskell/Problems/Haskell/scheme_v2
+	url = https://github.com/write-you-a-scheme-v2/scheme.git
+[submodule "ansible-interactive-tutorial"]
+	path = ansible-interactive-tutorial
+	url = https://github.com/turkenh/ansible-interactive-tutorial
