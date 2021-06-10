@@ -9,14 +9,10 @@ pub fn verse(n: u32) -> String {
 
 pub fn sing(start: u32, end: u32) -> String {
     let mut res = String::new();
-    for x in start..(end + 1) {
-        res.push_str(&verse(x))
+    // edge case first line
+    res = verse(end) + &res;
+    for x in (end + 1)..(start + 1) {
+        res = verse(x) + "\n" + &res;
     }
-    return res;
-}
-
-fn main() {
-    let mut res = String::new();
-    res.push_str(&verse(1));
-    println!("{}", res);
+    res
 }
