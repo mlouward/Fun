@@ -1,3 +1,4 @@
+# type: ignore
 import sys
 import time
 
@@ -21,9 +22,10 @@ def gaussian_filter(matrix, kernel):
 
     for i in range(h - s + 1):
         for j in range(w - s + 1):
-            res[i, j] = np.sum(np.multiply(kernel, matrix[i:i + s,j:j + s]))
+            res[i, j] = np.sum(np.multiply(kernel, matrix[i:i + s, j:j + s]))
 
     return res
+
 
 @jit(nopython=True)
 def sobel_filter(matrix):
@@ -34,11 +36,11 @@ def sobel_filter(matrix):
     w = matrix.shape[1]
 
     gx = np.array([[1, 0, -1],
-                  [2, 0, -2],
-                  [1, 0, -1]])
+                   [2, 0, -2],
+                   [1, 0, -1]])
     gy = np.array([[1, 2, 1],
-                  [0, 0, 0],
-                  [-1, -2, -1]])
+                   [0, 0, 0],
+                   [-1, -2, -1]])
     res = np.zeros((h - 2, w - 2))
 
     for i in range(h - 2):
@@ -49,6 +51,7 @@ def sobel_filter(matrix):
             res[i, j] = np.sqrt(S1**2 + S2**2)
 
     return res
+
 
 @jit(nopython=True)
 def prewitt_filter(matrix):
@@ -59,11 +62,11 @@ def prewitt_filter(matrix):
     w = matrix.shape[1]
 
     gx = np.array([[1, 0, -1],
-                  [1, 0, -1],
-                  [1, 0, -1]])
+                   [1, 0, -1],
+                   [1, 0, -1]])
     gy = np.array([[1, 1, 1],
-                  [0, 0, 0],
-                  [-1, -1, -1]])
+                   [0, 0, 0],
+                   [-1, -1, -1]])
     res = np.zeros((h - 2, w - 2))
 
     for i in range(h - 2):
@@ -74,14 +77,16 @@ def prewitt_filter(matrix):
             res[i, j] = np.sqrt(S1**2 + S2**2)
     return res
 
-def show_images(images, cols = 2, titles = None):
+
+def show_images(images, cols=2, titles=None):
     """Display a list of images in a single figure with matplotlib.
     @Params:
     images: List of np.arrays compatible with plt.imshow.
     """
-    assert((titles is None)or (len(images) == len(titles)))
+    assert((titles is None) or (len(images) == len(titles)))
     n_images = len(images)
-    if titles is None: titles = ['Image (%d)' % i for i in range(1,n_images + 1)]
+    if titles is None:
+        titles = ['Image (%d)' % i for i in range(1, n_images + 1)]
     fig = plt.figure()
     for n, (image, title) in enumerate(zip(images, titles)):
         a = fig.add_subplot(cols, np.ceil(n_images/float(cols)), n + 1)
@@ -127,5 +132,3 @@ if __name__ == "__main__":
     show_images(to_show, 2,
                 ["Base", f"Gaussian blur ({size})",
                  "Sobel on base", f"Sobel on {size}-Gaussian"])
-
-# python .\sharpen.py .\Saturn.jpg 0
