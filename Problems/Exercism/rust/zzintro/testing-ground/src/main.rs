@@ -1,6 +1,14 @@
+#![allow(dead_code, unused_variables)]
+#[derive(Debug)]
 struct Rectangle {
     width: u32,
     height: u32,
+}
+
+impl Rectangle {
+    fn area(&self) -> u32 {
+        self.width * self.height
+    }
 }
 
 fn main() {
@@ -11,10 +19,22 @@ fn main() {
 
     println!(
         "The area of the rectangle is {} square pixels.",
-        area(&rect1)
+        rect1.area()
     );
+
+    println!("{:#?}", rect1);
+
+    let home = IpAddr::V4(127, 0, 0, 1);
+    let loopback = IpAddr::V6(String::from("::1"));
+
+    if let Some(4) = Some(3) {
+        println!("three");
+    }
 }
 
-fn area(rectangle: &Rectangle) -> u32 {
-    rectangle.width * rectangle.height
+enum IpAddr {
+    V4(u8, u8, u8, u8),
+    V6(String),
 }
+
+fn route(ip: IpAddr) {}
