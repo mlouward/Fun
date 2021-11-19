@@ -55,7 +55,7 @@ if __name__ == "__main__":
     result = np.dot(weight, X) + bias
     print("Initial loss:", mse(result, y))
     # Gradient descent algorithm
-    w, b, loss_plot = gradient_descent(weight, bias, X, y, .0001, 1000)
+    w, b, loss_plot = gradient_descent(weight, bias, X, y, 0.0001, 1000)
     result = np.dot(X.T, w) + b
 
     print(w, b, "\nLoss:", mse(result, y))
