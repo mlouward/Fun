@@ -3,13 +3,9 @@ import ReactDOM from "react-dom";
 import "./index.css";
 import words5letters from "./assets/words5.txt";
 
-// read data and load it into a list of words WORDS
-
-let WORDS = [];
-let SECRET_WORD = "";
+// Game of Wordle: given a secret word, the user must guess the word
 const MAX_GUESSES = 7;
 const WORD_LENGTH = 5;
-// Game of Wordle: given a secret word, the user must guess the word
 
 // Square class
 function Square(props) {
@@ -17,14 +13,17 @@ function Square(props) {
         <div
             className="square"
             onKeyDown={props.onKeyDown}
-            style={{ backgroundColor: props.color }}
+            style={{
+                backgroundColor: props.backgroundColor,
+                border: props.border,
+            }}
         >
             {props.value}
         </div>
     );
 }
 
-// Grid class of MAX_GUESSES lines and 5 columns
+// Grid class of MAX_GUESSES lines and WORD_LENGTH columns
 class Grid extends React.Component {
     renderSquare(i, j, color) {
         const letter = this.props.guessedLetters[i][j];
@@ -33,7 +32,10 @@ class Grid extends React.Component {
                 onKeyDown={this.props.onKeyDown}
                 key={i * this.props.size + j}
                 value={letter ? letter : " "}
-                color={color}
+                backgroundColor={color}
+                border={
+                    this.props.guessedLetters[i][j] ? "0.2rem solid #222" : ""
+                }
             />
         );
     }
@@ -66,7 +68,7 @@ class Game extends React.Component {
     constructor(props) {
         super(props);
         this.state = {
-            secretWord: SECRET_WORD,
+            secretWord: null,
             guessedLetters: [[], [], [], [], [], [], []],
             colors: Array(MAX_GUESSES)
                 .fill(null)
@@ -84,11 +86,13 @@ class Game extends React.Component {
             // false
         );
         // fetch words from text file and save them in uppercase
-        WORDS = await fetch(words5letters)
+        this.allWords = await fetch(words5letters)
             .then((data) => data.text())
             .then((text) => {
                 return text.split("\n").map((x) => x.toUpperCase());
             });
+        // We keep only 1500 words, the others are too uncommon
+        this.playableWords = this.allWords.slice(0, 1500);
         // set the word for current game
         this.setWord();
     }
@@ -103,7 +107,7 @@ class Game extends React.Component {
         // Letters in the right place first
         for (let index = 0; index < guessedLetters.length; index++) {
             if (guessedLetters[index] === secretWord[index]) {
-                lastWordColors[index] = "rgba(100, 200, 160, 1)";
+                lastWordColors[index] = "rgb(76, 145, 87)";
                 // replace letter already found with a placeholder
                 secretWord[index] = "_";
                 // replace guessed letter with a different placeholder
@@ -114,31 +118,31 @@ class Game extends React.Component {
         for (let index = 0; index < guessedLetters.length; index++) {
             const guessedLetter = guessedLetters[index];
             if (secretWord.includes(guessedLetter)) {
-                lastWordColors[index] = "rgba(230, 170, 120, 1)";
+                lastWordColors[index] = "rgb(181, 159, 59)";
                 // replace letter already found with a placeholder
                 secretWord[secretWord.indexOf(guessedLetter)] = "_";
             }
         }
 
         const newColors = this.state.colors.slice();
-        newColors[this.state.numberOfGuesses] = lastWordColors;
+        newColors[this.state.numberOfGuesses] = lastWordColors.map((color) =>
+            color === "transparent" ? "rgb(58, 58, 60)" : color
+        );
         return newColors;
     }
 
     handleUserWord() {
+        const currentWord =
+            this.state.guessedLetters[this.state.numberOfGuesses].join("");
         // Color every letter of the word green if it is correctly placed and yellow if it is in the word but not in the right place
         const newColors = this.getLettersColors();
-        if (
-            this.state.guessedLetters[this.state.numberOfGuesses].join("") ===
-            this.state.secretWord
-        ) {
+        if (currentWord === this.state.secretWord) {
             // Check if the word is correct
             this.setState({
                 gameStatus: "won",
                 colors: newColors,
                 numberOfGuesses: this.state.numberOfGuesses + 1,
             });
-            return;
         } else if (this.state.numberOfGuesses === MAX_GUESSES - 1) {
             // Check if too many guesses
             this.setState({
@@ -148,6 +152,18 @@ class Game extends React.Component {
             });
         } else {
             // Continue the game otherwise
+            // Check if word is in the list of words
+            if (!this.allWords.includes(currentWord)) {
+                // display an alert if the word is not in the list
+                alert(`${currentWord} is not a known word`);
+                // clear the guessed word
+                const newGuessedLetters = this.state.guessedLetters.slice();
+                newGuessedLetters[this.state.numberOfGuesses] = [];
+                this.setState({
+                    guessedLetters: newGuessedLetters,
+                });
+                return;
+            }
             this.setState({
                 gameStatus: "playing",
                 colors: newColors,
@@ -159,13 +175,21 @@ class Game extends React.Component {
     handleUserLetterInput(event) {
         // add letter to guessedLetters
         const newGuessedLetters = this.state.guessedLetters.slice();
-        const afterGuess = this.state.guessedLetters[
-            this.state.numberOfGuesses
-        ].concat(event.key.toUpperCase());
-        newGuessedLetters[this.state.numberOfGuesses] = afterGuess;
-        this.setState({
-            guessedLetters: newGuessedLetters,
-        });
+        // check if word is not more than 5 letters
+        if (
+            !(
+                newGuessedLetters[this.state.numberOfGuesses].length >=
+                WORD_LENGTH
+            )
+        ) {
+            const afterGuess = this.state.guessedLetters[
+                this.state.numberOfGuesses
+            ].concat(event.key.toUpperCase());
+            newGuessedLetters[this.state.numberOfGuesses] = afterGuess;
+            this.setState({
+                guessedLetters: newGuessedLetters,
+            });
+        }
     }
 
     handleKeyDown(event) {
@@ -213,11 +237,14 @@ class Game extends React.Component {
 
     setWord = () => {
         // Select a random word
-        SECRET_WORD = WORDS[Math.floor(Math.random() * WORDS.length)];
-        console.log(SECRET_WORD);
+        const secretWord =
+            this.playableWords[
+                Math.floor(Math.random() * this.playableWords.length)
+            ];
+        console.log(secretWord);
         // Initialize the game
         this.setState({
-            secretWord: SECRET_WORD,
+            secretWord: secretWord,
             guessedLetters: [[], [], [], [], [], [], []],
             colors: Array(MAX_GUESSES)
                 .fill(null)
@@ -230,6 +257,9 @@ class Game extends React.Component {
     render() {
         return (
             <div className="game">
+                <header>
+                    <h1>Guess the Word!</h1>
+                </header>
                 <div className="game-board">
                     <Grid
                         size={WORD_LENGTH}
@@ -240,21 +270,16 @@ class Game extends React.Component {
                         colors={this.state.colors}
                     />
                 </div>
-                <div>
-                    <div className="game-info">
-                        <div className="game-info-cell">
-                            {this.renderResult()}
-                        </div>
-                        <div className="game-info-cell">
-                            {this.state.numberOfGuesses}/{MAX_GUESSES}
-                        </div>
-                        <div className="game-info-cell">
-                            <button onClick={() => this.setWord()}>
-                                Play another word !
-                            </button>
-                        </div>
+                <div className="game-info">
+                    <div className="game-info-cell">{this.renderResult()}</div>
+                    <div className="game-info-cell">
+                        {this.state.numberOfGuesses}/{MAX_GUESSES}
                     </div>
-                    <div className="game-word"></div>
+                    <div className="game-info-cell">
+                        <button onClick={this.setWord}>
+                            Play another word !
+                        </button>
+                    </div>
                 </div>
             </div>
         );
