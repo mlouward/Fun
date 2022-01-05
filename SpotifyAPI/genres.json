@@ -1,1192 +1,724 @@
 {
-  "pop": [
-    "Adele",
-    "Alec Benjamin",
-    "Ariana Grande",
-    "Au/Ra",
-    "Ava Max",
-    "Bea Miller",
-    "Billie Eilish",
-    "Black Eyed Peas",
-    "Calvin Harris",
-    "Camila Cabello",
-    "Cheat Codes",
-    "Clairo",
-    "Demi Lovato",
-    "Dermot Kennedy",
-    "Diplo",
-    "Dove Cameron",
-    "Dua Lipa",
-    "Ed Sheeran",
-    "Elley Duhé",
-    "Frank Ocean",
-    "Garrett Nash",
-    "Griff",
-    "H.E.R.",
-    "Imagine Dragons",
-    "Jason Derulo",
-    "Jaymes Young",
-    "Kim Petras",
-    "Lana Del Rey",
-    "Lily Allen",
-    "MEDUZA",
-    "Madison Beer",
-    "Madonna",
-    "Martin Garrix",
-    "Michael Jackson",
-    "Mothica",
-    "Nina Nesbitt",
-    "Olivia Rodrigo",
-    "PARTYNEXTDOOR",
-    "PVRIS",
-    "R3HAB",
-    "Rihanna",
-    "Ruelle",
-    "Sasha Alex Sloan",
-    "Selena Gomez",
-    "Shakira",
-    "Tate McRae",
-    "Tiësto",
-    "Tove Lo",
-    "UPSAHL",
-    "Zedd",
-    "blackbear",
-    "bülow",
-    "Ängie"
-  ],
-  "dance pop": [
-    "Afrojack",
-    "Ariana Grande",
-    "Ava Max",
-    "Bea Miller",
-    "Black Eyed Peas",
-    "Calvin Harris",
-    "Camila Cabello",
-    "Cheat Codes",
-    "DEV",
-    "Demi Lovato",
-    "Diplo",
-    "Dua Lipa",
-    "Griff",
-    "H.E.R.",
-    "Imanbek",
-    "Jason Derulo",
-    "Kim Petras",
-    "Lily Allen",
-    "Madison Beer",
-    "Madonna",
-    "Martin Garrix",
-    "Nina Nesbitt",
-    "R3HAB",
-    "Rihanna",
-    "Selena Gomez",
-    "Shakira",
-    "Tate McRae",
-    "Tiësto",
-    "Topic",
-    "Tove Lo",
-    "Tujamo",
-    "VIZE",
-    "Wiley",
-    "Zedd",
-    "twocolors"
-  ],
-  "alt z": [
-    "AViVA",
-    "Alec Benjamin",
-    "Arrested Youth",
-    "Au/Ra",
-    "Bea Miller",
-    "Besomorph",
-    "Echos",
-    "Elley Duhé",
-    "Garrett Nash",
-    "Griff",
-    "Jaymes Young",
-    "Kim Petras",
-    "Madison Beer",
-    "Mickey Valen",
-    "Mothica",
-    "Neoni",
-    "Nina Nesbitt",
-    "Royal & the Serpent",
-    "Sasha Alex Sloan",
-    "Stela Cole",
-    "Tate McRae",
-    "TeZATalks",
-    "The Tech Thieves",
-    "UPSAHL",
-    "Unlike Pluto",
-    "bülow",
-    "phem",
-    "Ängie"
-  ],
-  "electropop": [
-    "Alec Benjamin",
-    "Au/Ra",
-    "Bea Miller",
-    "Billie Eilish",
-    "Cheat Codes",
-    "DEV",
-    "Echos",
-    "Elley Duhé",
-    "Erika de Casier",
-    "Kim Petras",
-    "Madison Beer",
-    "Marian Hill",
-    "Mothica",
-    "Nina Nesbitt",
-    "Purity Ring",
-    "Ruelle",
-    "Sasha Alex Sloan",
-    "Tove Lo",
-    "UPSAHL",
-    "Zedd",
-    "bülow"
-  ],
-  "bass trap": [
-    "Alter.",
-    "Apashe",
-    "Barren Gates",
-    "Besomorph",
-    "Far Out",
-    "Inova",
-    "Jinco",
-    "MEMBA",
-    "Matstubs",
-    "Mickey Valen",
-    "Sdms",
-    "Stephen",
-    "The Tech Thieves",
-    "TroyBoi",
-    "Unlike Pluto",
-    "Vanic"
-  ],
-  "edm": [
-    "Afrojack",
-    "Calvin Harris",
-    "Carnage",
-    "Cheat Codes",
-    "Diplo",
-    "Gorgon City",
-    "Hayden James",
-    "Imanbek",
-    "KSHMR",
-    "Love Regenerator",
-    "MEDUZA",
-    "Martin Garrix",
-    "Moguai",
-    "R3HAB",
-    "Rezz",
-    "Rootkit",
-    "SIDEPIECE",
-    "Swanky Tunes",
-    "Tiësto",
-    "Topic",
-    "TroyBoi",
-    "Tujamo",
-    "VIZE",
-    "Vanic",
-    "Zedd",
-    "twocolors"
-  ],
-  "pop rap": [
-    "Afrojack",
-    "Black Eyed Peas",
-    "Calvin Harris",
-    "Carnage",
-    "Garrett Nash",
-    "Goody Grace",
-    "Hopsin",
-    "Jason Derulo",
-    "MASN",
-    "NF",
-    "PARTYNEXTDOOR",
-    "Pell",
-    "Rick Ross",
-    "Rihanna",
-    "Ryan Caraveo",
-    "SonReal",
-    "blackbear"
-  ],
-  "traprun": [
-    "Alter.",
-    "Barren Gates",
-    "Besomorph",
-    "Far Out",
-    "Inova",
-    "Jinco",
-    "Juelz",
-    "Kujah",
-    "MEMBA",
-    "Matstubs",
-    "Mickey Valen",
-    "Sdms",
-    "Svniivan",
-    "The FifthGuys",
-    "The Tech Thieves",
-    "Vanic"
-  ],
-  "pop dance": [
-    "Afrojack",
-    "Cheat Codes",
-    "Diplo",
-    "Gorgon City",
-    "Hayden James",
-    "Imanbek",
-    "KSHMR",
-    "MEDUZA",
-    "Martin Garrix",
-    "Moguai",
-    "R3HAB",
-    "Swanky Tunes",
-    "Tiësto",
-    "Tom Enzy",
-    "Topic",
-    "Tujamo",
-    "VIZE",
-    "Wiley",
-    "Zedd",
-    "twocolors"
-  ],
-  "electro house": [
-    "Afrojack",
-    "Alan Walker",
-    "Alok",
-    "Calvin Harris",
-    "Carnage",
-    "Cheat Codes",
-    "Diplo",
-    "Imanbek",
-    "KSHMR",
-    "Moguai",
-    "R3HAB",
-    "Rezz",
-    "Rootkit",
-    "SIDEPIECE",
-    "Swanky Tunes",
-    "Topic",
-    "TroyBoi",
-    "Tujamo",
-    "VOLAC",
-    "Zedd"
-  ],
-  "tropical house": [
-    "Afrojack",
-    "Cheat Codes",
-    "Diplo",
-    "Feder",
-    "Gorgon City",
-    "Hayden James",
-    "Imanbek",
-    "KSHMR",
-    "MEDUZA",
-    "Martin Garrix",
-    "R3HAB",
-    "Surf Mesa",
-    "Tiësto",
-    "Topic",
-    "Tujamo",
-    "VIZE",
-    "Zedd",
-    "twocolors"
-  ],
-  "indie poptimism": [
-    "Au/Ra",
-    "Bea Miller",
-    "Cappa",
-    "Echos",
-    "Elley Duhé",
-    "Jaymes Young",
-    "Marian Hill",
-    "Nina Nesbitt",
-    "Prinze George",
-    "Ruelle",
-    "Stephen",
-    "TeZATalks",
-    "UPSAHL",
-    "Unlike Pluto",
-    "bülow",
-    "Ängie"
-  ],
-  "rap": [
-    "Denzel Curry",
-    "Drake",
-    "Eminem",
-    "Hopsin",
-    "JACKBOYS",
-    "Kanye West",
-    "NF",
-    "PARTYNEXTDOOR",
-    "Rick Ross",
-    "Travis Scott"
-  ],
-  "slap house": [
-    "Alok",
-    "Besomorph",
-    "Demando",
-    "Ellipso",
-    "Imanbek",
-    "KSHMR",
-    "Quarantino",
-    "R3HAB",
-    "Scott Rill",
-    "Tiësto",
-    "Tom Enzy",
-    "Travis Scott",
-    "VIZE"
-  ],
-  "post-teen pop": [
-    "Bea Miller",
-    "Camila Cabello",
-    "Demi Lovato",
-    "Dove Cameron",
-    "Jason Derulo",
-    "Kim Petras",
-    "Madison Beer",
-    "Nina Nesbitt",
-    "Selena Gomez",
-    "Tate McRae",
-    "Tove Lo"
-  ],
-  "hip hop": [
-    "Denzel Curry",
-    "Drake",
-    "Eminem",
-    "Frank Ocean",
-    "Hopsin",
-    "NF",
-    "Rick Ross",
-    "Talib Kweli"
-  ],
-  "pop edm": [
-    "B-Case",
-    "Cheat Codes",
-    "Dillistone",
-    "EQRIC",
-    "Far Out",
-    "Jinco",
-    "Mickey Valen",
-    "Miles Away",
-    "Rompasso",
-    "Rootkit",
-    "Swanky Tunes",
-    "Topic",
-    "Vanic",
-    "twocolors"
-  ],
-  "house": [
-    "Calvin Harris",
-    "Cloonee",
-    "Diplo",
-    "Gorgon City",
-    "Hayden James",
-    "Love Regenerator",
-    "Moguai",
-    "SIDEPIECE",
-    "Solardo",
-    "Tiësto",
-    "Wh0",
-    "Wiley"
-  ],
-  "modern alternative rock": [
-    "Arrested Youth",
-    "Neoni",
-    "PVRIS",
-    "The Tech Thieves",
-    "Unlike Pluto",
-    "grandson"
-  ],
-  "modern rock": [
-    "Arrested Youth",
-    "Bea Miller",
-    "Fall Out Boy",
-    "Imagine Dragons",
-    "Jaymes Young",
-    "PVRIS",
-    "UPSAHL",
-    "Unlike Pluto",
-    "grandson"
-  ],
-  "rock": [
-    "Arrested Youth",
-    "Blue Öyster Cult",
-    "Bring Me The Horizon",
-    "Fall Out Boy",
-    "Imagine Dragons",
-    "Led Zeppelin",
-    "PVRIS",
-    "Radiohead",
-    "The Doors",
-    "The Kinks",
-    "grandson"
-  ],
-  "art pop": [
-    "Billie Eilish",
-    "Erika de Casier",
-    "Kim Petras",
-    "Lana Del Rey",
-    "Purity Ring"
-  ],
-  "hamburg hip hop": [
-    "Nina Chuba"
-  ],
-  "swedish pop": [
-    "ABBA",
-    "SVEA",
-    "Tove Lo"
-  ],
-  "social media pop": [
-    "Dove Cameron",
-    "Garrett Nash",
-    "Mothica",
-    "Royal & the Serpent",
-    "Stela Cole",
-    "UPSAHL",
-    "bülow"
-  ],
-  "europop": [
-    "ABBA"
-  ],
-  "electronic trap": [
-    "Carnage",
-    "Juelz",
-    "MEMBA",
-    "TroyBoi",
-    "Vanic"
-  ],
-  "progressive electro house": [
-    "Moguai",
-    "R3HAB",
-    "Swanky Tunes",
-    "Tujamo"
-  ],
-  "gaming edm": [
-    "Barren Gates",
-    "Cadmium",
-    "Cartoon",
-    "Far Out",
-    "Rootkit"
-  ],
-  "uk pop": [
-    "Adele",
-    "Dua Lipa",
-    "Ed Sheeran",
-    "Griff",
-    "Nina Nesbitt"
-  ],
-  "escape room": [
-    "Erika de Casier",
-    "KAYTRANADA",
-    "Kim Petras",
-    "Ängie"
-  ],
-  "indie electropop": [
-    "EVAN GIIA",
-    "Royal & the Serpent",
-    "TeZATalks",
-    "Vanic",
-    "Ängie"
-  ],
-  "album rock": [
-    "Blue Öyster Cult",
-    "Cutting Crew",
-    "Led Zeppelin",
-    "The Kinks"
-  ],
-  "classic rock": [
-    "Blue Öyster Cult",
-    "Led Zeppelin",
-    "The Doors",
-    "The Kinks"
-  ],
-  "uk dance": [
-    "Calvin Harris",
-    "Gorgon City",
-    "Solardo",
-    "Wh0",
-    "Wiley"
-  ],
-  "psychedelic trance": [
-    "Ghost Rider",
-    "Infected Mushroom",
-    "Ranji",
-    "WHITENO1SE"
-  ],
-  "progressive house": [
-    "Afrojack",
-    "Calvin Harris",
-    "Martin Garrix",
-    "Moguai",
-    "Swanky Tunes"
-  ],
-  "la pop": [
-    "Karra",
-    "Stephen",
-    "why mona"
-  ],
-  "big room": [
-    "Afrojack",
-    "KSHMR",
-    "Tiësto"
-  ],
-  "dutch edm": [
-    "BLR",
-    "Martin Garrix",
-    "Tiësto"
-  ],
-  "indie soul": [
-    "Hayden James",
-    "KAYTRANADA",
-    "Young Franco"
-  ],
-  "vapor soul": [
-    "Mothica",
-    "Mura Masa",
-    "Prinze George"
-  ],
-  "future bass": [
-    "MEMBA",
-    "Rootkit",
-    "Vanic"
-  ],
-  "vapor twitch": [
-    "Juelz",
-    "MEMBA",
-    "Vanic"
-  ],
-  "dutch house": [
-    "Afrojack",
-    "R3HAB"
-  ],
-  "sad rap": [
-    "Goody Grace",
-    "MASN",
-    "Ryan Caraveo",
-    "Shyler"
-  ],
-  "deep groove house": [
-    "Gorgon City",
-    "SIDEPIECE",
-    "Solardo",
-    "Wh0"
-  ],
-  "aussietronica": [
-    "Hayden James",
-    "Human Movement",
-    "Young Franco"
-  ],
-  "art rock": [
-    "Blue Öyster Cult",
-    "Radiohead",
-    "The Kinks"
-  ],
-  "g-house": [
-    "Damian Spider",
-    "KEAN DYSSO",
-    "Linius",
-    "Rompasso"
-  ],
-  "wave": [
-    "CASHFORGOLD",
-    "Sublab",
-    "Tim Schaufert",
-    "ΔXIUS LIИK"
-  ],
-  "metropopolis": [
-    "Purity Ring",
-    "Ruelle",
-    "Tove Lo"
-  ],
-  "alternative r&b": [
-    "Frank Ocean",
-    "H.E.R.",
-    "Joji"
-  ],
-  "r&b": [
-    "H.E.R.",
-    "Michael Jackson",
-    "PARTYNEXTDOOR"
-  ],
-  "trap": [
-    "JACKBOYS",
-    "PARTYNEXTDOOR",
-    "Rick Ross"
-  ],
-  "indian edm": [
-    "KSHMR",
-    "MEMBA"
-  ],
-  "brazilian edm": [
-    "FractaLL",
-    "Tom Enzy",
-    "VOLAC"
-  ],
-  "speedrun": [
-    "League of Legends",
-    "TheFatRat"
-  ],
-  "video game music": [
-    "Death Stranding: Timefall",
-    "League of Legends"
-  ],
-  "viral pop": [
-    "Against The Current",
-    "Joji",
-    "Nina Nesbitt"
-  ],
-  "lithuanian edm": [
-    "Demando",
-    "KEAN DYSSO",
-    "Linius"
-  ],
-  "psychedelic rock": [
-    "The Doors",
-    "The Kinks"
-  ],
-  "indietronica": [
-    "Purity Ring",
-    "The Shoes",
-    "bülow"
-  ],
-  "mellow gold": [
-    "Cutting Crew",
-    "The Kinks"
-  ],
-  "new french touch": [
-    "Feder",
-    "Kid Francescoli",
-    "Nebbra"
-  ],
-  "southern hip hop": [
-    "André 3000",
-    "Rick Ross",
-    "Talib Kweli"
-  ],
-  "chillstep": [
-    "Rootkit",
-    "Sublab",
-    "Tim Schaufert"
-  ],
-  "german dance": [
-    "Kush Kush",
-    "Topic",
-    "VIZE"
-  ],
-  "brostep": [
-    "Tiësto"
-  ],
-  "trance": [
-    "Tiësto"
-  ],
-  "lgbtq+ hip hop": [
-    "Frank Ocean",
-    "KAYTRANADA"
-  ],
-  "pixie": [
-    "Against The Current",
-    "PVRIS"
-  ],
-  "pop punk": [
-    "Against The Current",
-    "PVRIS"
-  ],
-  "french hip hop": [
-    "Yuzmv"
-  ],
-  "rap calme": [
-    "Yuzmv"
-  ],
-  "alternative rock": [
-    "Radiohead",
-    "Red Hot Chili Peppers"
-  ],
-  "permanent wave": [
-    "Radiohead",
-    "Red Hot Chili Peppers"
-  ],
-  "hard rock": [
-    "Blue Öyster Cult",
-    "Led Zeppelin"
-  ],
-  "deep pop edm": [
-    "Au/Ra"
-  ],
-  "dark trap": [
-    "Denzel Curry",
-    "Haarper"
-  ],
-  "emo rap": [
-    "MASN",
-    "Shyler"
-  ],
-  "sad lo-fi": [
-    "MASN",
-    "Shyler"
-  ],
-  "moombahton": [
-    "Diplo"
-  ],
-  "ninja": [
-    "Diplo"
-  ],
-  "vapor pop": [
-    "AViVA",
-    "Prinze George"
-  ],
-  "deep house": [
-    "Solardo",
-    "Wh0"
-  ],
-  "toronto rap": [
-    "Drake",
-    "PARTYNEXTDOOR"
-  ],
-  "urban contemporary": [
-    "PARTYNEXTDOOR",
-    "Rihanna"
-  ],
-  "disco house": [
-    "Crystal Waters",
-    "Wh0"
-  ],
-  "canadian hip hop": [
-    "Drake",
-    "SonReal"
-  ],
-  "indie pop rap": [
-    "Ryan Caraveo",
-    "SonReal"
-  ],
-  "dark clubbing": [
-    "One True God"
-  ],
-  "experimental bass": [
-    "One True God"
-  ],
-  "french indie pop": [
-    "Kid Francescoli",
-    "The Shoes"
-  ],
-  "french indietronica": [
-    "Kid Francescoli",
-    "The Shoes"
-  ],
-  "canadian electronic": [
-    "Juelz",
-    "Rezz"
-  ],
-  "soft rock": [
-    "Blue Öyster Cult",
-    "Cutting Crew"
-  ],
-  "anime score": [
-    "Hiroyuki Sawano",
-    "Joe Hisaishi"
-  ],
-  "japanese soundtrack": [
-    "Hiroyuki Sawano",
-    "Joe Hisaishi"
-  ],
-  "soul": [
-    "Bill Withers",
-    "Michael Jackson"
-  ],
-  "dirty south rap": [
-    "André 3000",
-    "Rick Ross"
-  ],
-  "lithuanian electronic": [
-    "Lucky Luke"
-  ],
-  "canadian electropop": [
-    "Madalen Duke",
-    "Purity Ring"
-  ],
-  "conscious hip hop": [
-    "Hopsin",
-    "Talib Kweli"
-  ],
-  "hyperpop": [
-    "Kim Petras"
-  ],
-  "transpop": [
-    "Kim Petras"
-  ],
-  "german pop": [
-    "MAJAN",
-    "Nico Santos"
-  ],
-  "complextro": [
-    "Rootkit",
-    "Zedd"
-  ],
-  "melodic dubstep": [
-    "Far Out",
-    "Rootkit"
-  ],
-  "russian edm": [
-    "Rompasso",
-    "Swanky Tunes"
-  ],
-  "bass house": [
-    "SIDEPIECE",
-    "VOLAC"
-  ],
-  "german techno": [
-    "Moguai",
-    "Zedd"
-  ],
-  "british invasion": [
-    "The Kinks"
-  ],
-  "folk rock": [
-    "The Kinks"
-  ],
-  "glam rock": [
-    "The Kinks"
-  ],
-  "protopunk": [
-    "The Kinks"
-  ],
-  "indie quebecois": [
-    "Geoffroy"
-  ],
-  "underground hip hop": [
-    "Denzel Curry",
-    "Pell"
-  ],
-  "british soul": [
-    "Adele"
-  ],
-  "pop soul": [
-    "Adele"
-  ],
-  "colombian indie": [
-    "Ela Minus"
-  ],
-  "latintronica": [
-    "Ela Minus"
-  ],
-  "pop electronico": [
-    "Ela Minus"
-  ],
-  "scandinavian r&b": [
-    "Erika de Casier"
-  ],
-  "channel islands indie": [
-    "Mura Masa"
-  ],
-  "brooklyn drill": [
-    "Pop Smoke"
-  ],
-  "arab trap": [
-    "Inova"
-  ],
-  "nyc pop": [
-    "EVAN GIIA"
-  ],
-  "pop emo": [
-    "PVRIS"
-  ],
-  "funk metal": [
-    "Red Hot Chili Peppers"
-  ],
-  "funk rock": [
-    "Red Hot Chili Peppers"
-  ],
-  "tekk": [
-    "Mausio"
-  ],
-  "pop nacional": [
-    "Alok"
-  ],
-  "k-pop": [
-    "MAMAMOO"
-  ],
-  "k-pop girl group": [
-    "MAMAMOO"
-  ],
-  "aesthetic rap": [
-    "Haarper"
-  ],
-  "drift phonk": [
-    "Haarper"
-  ],
-  "neon pop punk": [
-    "Against The Current"
-  ],
-  "grime": [
-    "Wiley"
-  ],
-  "uk dancehall": [
-    "Wiley"
-  ],
-  "uk hip hop": [
-    "Wiley"
-  ],
-  "estonian electronic": [
-    "Jozels"
-  ],
-  "ohio hip hop": [
-    "Machine Gun Kelly"
-  ],
-  "etherpop": [
-    "Prinze George"
-  ],
-  "desi pop": [
-    "Sanjoy"
-  ],
-  "barbadian pop": [
-    "Rihanna"
-  ],
-  "acid rock": [
-    "The Doors"
-  ],
-  "diva house": [
-    "Crystal Waters"
-  ],
-  "hip house": [
-    "Crystal Waters"
-  ],
-  "vocal house": [
-    "Crystal Waters"
-  ],
-  "detroit hip hop": [
-    "Eminem"
-  ],
-  "bc underground hip hop": [
-    "SonReal"
-  ],
-  "canadian old school hip hop": [
-    "SonReal"
-  ],
-  "drum and bass": [
-    "SHY FX"
-  ],
-  "jungle": [
-    "SHY FX"
-  ],
-  "uk alternative hip hop": [
-    "SHY FX"
-  ],
-  "uk dnb": [
-    "SHY FX"
-  ],
-  "electrofox": [
-    "The Shoes"
-  ],
-  "filter house": [
-    "The Shoes"
-  ],
-  "nederpop": [
-    "The Shoes"
-  ],
-  "new rave": [
-    "The Shoes"
-  ],
-  "electra": [
-    "Rezz"
-  ],
-  "new romantic": [
-    "Cutting Crew"
-  ],
-  "new wave": [
-    "Cutting Crew"
-  ],
-  "new wave pop": [
-    "Cutting Crew"
-  ],
-  "synthpop": [
-    "Cutting Crew"
-  ],
-  "anime": [
-    "Joe Hisaishi"
-  ],
-  "japanese classical": [
-    "Joe Hisaishi"
-  ],
-  "metal": [
-    "Blue Öyster Cult"
-  ],
-  "melancholia": [
-    "Radiohead"
-  ],
-  "oxford indie": [
-    "Radiohead"
-  ],
-  "bedroom pop": [
-    "Clairo"
-  ],
-  "indie pop": [
-    "Clairo"
-  ],
-  "funk": [
-    "Bill Withers"
-  ],
-  "motown": [
-    "Bill Withers"
-  ],
-  "quiet storm": [
-    "Bill Withers"
-  ],
-  "yacht rock": [
-    "Bobby Caldwell"
-  ],
-  "neo soul": [
-    "Frank Ocean"
-  ],
-  "atl hip hop": [
-    "André 3000"
-  ],
-  "chicago rap": [
-    "Kanye West"
-  ],
-  "emo": [
-    "Fall Out Boy"
-  ],
-  "gauze pop": [
-    "Hayden James"
-  ],
-  "future garage": [
-    "Gorgon City"
-  ],
-  "dream smp": [
-    "Alec Benjamin"
-  ],
-  "v-pop": [
-    "Giang Pham"
-  ],
-  "epicore": [
-    "Scott Benson Band"
-  ],
-  "chillwave": [
-    "Purity Ring"
-  ],
-  "dream pop": [
-    "Purity Ring"
-  ],
-  "edmonton indie": [
-    "Purity Ring"
-  ],
-  "grave wave": [
-    "Purity Ring"
-  ],
-  "shimmer pop": [
-    "Purity Ring"
-  ],
-  "alternative hip hop": [
-    "Talib Kweli"
-  ],
-  "east coast hip hop": [
-    "Talib Kweli"
-  ],
-  "hardcore hip hop": [
-    "Talib Kweli"
-  ],
-  "neo-singer-songwriter": [
-    "Nina Nesbitt"
-  ],
-  "pop rock": [
-    "Nina Nesbitt"
-  ],
-  "melodic metalcore": [
-    "Bring Me The Horizon"
-  ],
-  "metalcore": [
-    "Bring Me The Horizon"
-  ],
-  "uk metalcore": [
-    "Bring Me The Horizon"
-  ],
-  "canadian pop": [
-    "Drake"
-  ],
-  "gangster rap": [
-    "Rick Ross"
-  ],
-  "trap latino": [
-    "Myke Towers"
-  ],
-  "sky room": [
-    "Swanky Tunes"
-  ],
-  "australian hip hop": [
-    "Masked Wolf"
-  ],
-  "swedish electropop": [
-    "Tove Lo"
-  ],
-  "swedish synthpop": [
-    "Tove Lo"
-  ],
-  "indie r&b": [
-    "Fousheé"
-  ],
-  "pop house": [
-    "MEDUZA"
-  ],
-  "folk-pop": [
-    "Dermot Kennedy"
-  ],
-  "irish pop": [
-    "Dermot Kennedy"
-  ],
-  "funky house": [
-    "Wh0"
-  ],
-  "funky tech house": [
-    "Wh0"
-  ],
-  "colombian pop": [
-    "Shakira"
-  ],
-  "latin": [
-    "Shakira"
-  ],
-  "latin pop": [
-    "Shakira"
-  ],
-  "r&b en espanol": [
-    "ROSALÍA"
-  ],
-  "talent show": [
-    "Bea Miller"
-  ],
-  "lithuanian hip hop": [
-    "Kordas"
-  ],
-  "dutch dnb": [
-    "Buunshin"
-  ],
-  "drill": [
-    "Denzel Curry"
-  ],
-  "miami hip hop": [
-    "Denzel Curry"
-  ],
-  "modern indie pop": [
-    "UPSAHL"
-  ],
-  "german hip hop": [
-    "MAJAN"
-  ],
-  "german trap": [
-    "MAJAN"
-  ],
-  "modern alternative pop": [
-    "Royal & the Serpent"
-  ],
-  "trap soul": [
-    "Dutch Melrose"
-  ],
-  "norwegian pop": [
-    "Alida"
-  ],
-  "belgian pop": [
-    "Angèle"
-  ],
-  "variete francaise": [
-    "Angèle"
-  ]
+    "pop": [
+        "Adele",
+        "Alec Benjamin",
+        "Ali Gatie",
+        "Ariana Grande",
+        "Au/Ra",
+        "Ava Max",
+        "Bea Miller",
+        "Billie Eilish",
+        "Black Eyed Peas",
+        "Calvin Harris",
+        "Camila Cabello",
+        "Cheat Codes",
+        "Clairo",
+        "Coldplay",
+        "Demi Lovato",
+        "Dermot Kennedy",
+        "Diplo",
+        "Dove Cameron",
+        "Dua Lipa",
+        "Ed Sheeran",
+        "Elley Duhé",
+        "Frank Ocean",
+        "Garrett Nash",
+        "Griff",
+        "H.E.R.",
+        "Jason Derulo",
+        "Jaymes Young",
+        "Kim Petras",
+        "Lana Del Rey",
+        "Lily Allen",
+        "MEDUZA",
+        "Madison Beer",
+        "Madonna",
+        "Martin Garrix",
+        "Michael Jackson",
+        "Mothica",
+        "Nina Nesbitt",
+        "Olivia Rodrigo",
+        "PARTYNEXTDOOR",
+        "PVRIS",
+        "R3HAB",
+        "Rihanna",
+        "Ruelle",
+        "Sasha Alex Sloan",
+        "Selena Gomez",
+        "Shakira",
+        "Tate McRae",
+        "Tiësto",
+        "Tove Lo",
+        "UPSAHL",
+        "Zedd",
+        "blackbear",
+        "bülow",
+        "Ängie"
+    ],
+    "dance pop": [
+        "Afrojack",
+        "Ariana Grande",
+        "Ava Max",
+        "Bea Miller",
+        "Black Eyed Peas",
+        "Calvin Harris",
+        "Camila Cabello",
+        "Cheat Codes",
+        "DEV",
+        "Demi Lovato",
+        "Diplo",
+        "Dua Lipa",
+        "Griff",
+        "H.E.R.",
+        "Imanbek",
+        "Jason Derulo",
+        "Kim Petras",
+        "Lily Allen",
+        "Madison Beer",
+        "Madonna",
+        "Martin Garrix",
+        "Nina Nesbitt",
+        "R3HAB",
+        "Rihanna",
+        "Selena Gomez",
+        "Shakira",
+        "Tate McRae",
+        "Tiësto",
+        "Topic",
+        "Tove Lo",
+        "Tujamo",
+        "VIZE",
+        "Zedd",
+        "twocolors"
+    ],
+    "edm": [
+        "Afrojack",
+        "Calvin Harris",
+        "Carnage",
+        "Cheat Codes",
+        "Diplo",
+        "Gorgon City",
+        "Hayden James",
+        "Imanbek",
+        "KSHMR",
+        "Love Regenerator",
+        "MEDUZA",
+        "MOGUAI",
+        "Martin Garrix",
+        "R3HAB",
+        "Rezz",
+        "Rootkit",
+        "SIDEPIECE",
+        "Swanky Tunes",
+        "Tiësto",
+        "Topic",
+        "TroyBoi",
+        "Tujamo",
+        "VIZE",
+        "Vanic",
+        "Zedd",
+        "twocolors"
+    ],
+    "alt z": [
+        "AViVA",
+        "Alec Benjamin",
+        "Arrested Youth",
+        "Au/Ra",
+        "Bea Miller",
+        "Besomorph",
+        "Echos",
+        "Elley Duhé",
+        "Griff",
+        "Madison Beer",
+        "Mickey Valen",
+        "Mothica",
+        "Neoni",
+        "Nina Nesbitt",
+        "Royal & the Serpent",
+        "Sasha Alex Sloan",
+        "Stela Cole",
+        "Tate McRae",
+        "TeZATalks",
+        "The Tech Thieves",
+        "UPSAHL",
+        "Unlike Pluto",
+        "bülow",
+        "phem",
+        "Ängie"
+    ],
+    "electropop": [
+        "Alec Benjamin",
+        "Au/Ra",
+        "Bea Miller",
+        "Billie Eilish",
+        "Cheat Codes",
+        "DEV",
+        "Echos",
+        "Elley Duhé",
+        "Erika de Casier",
+        "Garrett Nash",
+        "Kim Petras",
+        "Madison Beer",
+        "Marian Hill",
+        "Mothica",
+        "Nina Nesbitt",
+        "Purity Ring",
+        "Ruelle",
+        "Sasha Alex Sloan",
+        "Tove Lo",
+        "UPSAHL",
+        "Zedd",
+        "bülow",
+        "Ängie"
+    ],
+    "electro house": [
+        "Afrojack",
+        "Alan Walker",
+        "Alok",
+        "Calvin Harris",
+        "Carnage",
+        "Cheat Codes",
+        "Diplo",
+        "Imanbek",
+        "KSHMR",
+        "MOGUAI",
+        "Martin Garrix",
+        "R3HAB",
+        "Rezz",
+        "Rootkit",
+        "SIDEPIECE",
+        "Swanky Tunes",
+        "Topic",
+        "TroyBoi",
+        "Tujamo",
+        "VOLAC",
+        "Zedd",
+        "twocolors"
+    ],
+    "pop rap": [
+        "AK",
+        "Afrojack",
+        "Black Eyed Peas",
+        "Calvin Harris",
+        "Carnage",
+        "Garrett Nash",
+        "Goody Grace",
+        "Hopsin",
+        "Jason Derulo",
+        "MASN",
+        "Machine Gun Kelly",
+        "NF",
+        "PARTYNEXTDOOR",
+        "Pell",
+        "Rick Ross",
+        "Rihanna",
+        "Ryan Caraveo",
+        "SonReal",
+        "Zedd",
+        "blackbear"
+    ],
+    "pop dance": [
+        "Afrojack",
+        "Cheat Codes",
+        "Diplo",
+        "Gorgon City",
+        "Imanbek",
+        "KSHMR",
+        "MEDUZA",
+        "MOGUAI",
+        "Martin Garrix",
+        "R3HAB",
+        "Swanky Tunes",
+        "Tiësto",
+        "Tom Enzy",
+        "Topic",
+        "Tujamo",
+        "VIZE",
+        "Zedd",
+        "twocolors"
+    ],
+    "tropical house": [
+        "Afrojack",
+        "Cheat Codes",
+        "Diplo",
+        "Feder",
+        "Gorgon City",
+        "Hayden James",
+        "Imanbek",
+        "KSHMR",
+        "MEDUZA",
+        "Martin Garrix",
+        "R3HAB",
+        "Surf Mesa",
+        "Tiësto",
+        "Topic",
+        "Tujamo",
+        "VIZE",
+        "Zedd",
+        "twocolors"
+    ],
+    "traprun": [
+        "Alter.",
+        "Barren Gates",
+        "Besomorph",
+        "Far Out",
+        "Inova",
+        "Jinco",
+        "Juelz",
+        "Kujah",
+        "MEMBA",
+        "Matstubs",
+        "Mickey Valen",
+        "Sdms",
+        "Svniivan",
+        "The FifthGuys",
+        "The Tech Thieves",
+        "Vanic"
+    ],
+    "indie poptimism": [
+        "Au/Ra",
+        "Bea Miller",
+        "Cappa",
+        "Echos",
+        "Kim Petras",
+        "Marian Hill",
+        "Mothica",
+        "Nina Nesbitt",
+        "Prinze George",
+        "Ruelle",
+        "Stephen",
+        "TeZATalks",
+        "UPSAHL",
+        "Unlike Pluto",
+        "bülow",
+        "Ängie"
+    ],
+    "rock": [
+        "Alien Ant Farm",
+        "Arrested Youth",
+        "Blue Öyster Cult",
+        "Bring Me The Horizon",
+        "Fall Out Boy",
+        "Imagine Dragons",
+        "Kaiser Chiefs",
+        "Led Zeppelin",
+        "PVRIS",
+        "Radiohead",
+        "Red Hot Chili Peppers",
+        "The Doors",
+        "The Kinks",
+        "The White Stripes",
+        "grandson"
+    ],
+    "bass trap": [
+        "Alter.",
+        "Apashe",
+        "Barren Gates",
+        "Far Out",
+        "Inova",
+        "Jinco",
+        "MEMBA",
+        "Matstubs",
+        "Mickey Valen",
+        "Sdms",
+        "The Tech Thieves",
+        "TroyBoi",
+        "Unlike Pluto",
+        "Vanic"
+    ],
+    "house": [
+        "Calvin Harris",
+        "Cloonee",
+        "Diplo",
+        "Gorgon City",
+        "Hayden James",
+        "Love Regenerator",
+        "MOGUAI",
+        "SIDEPIECE",
+        "Solardo",
+        "Tiësto",
+        "Tujamo",
+        "VOLAC",
+        "Wh0",
+        "Wiley"
+    ],
+    "slap house": [
+        "Alok",
+        "Besomorph",
+        "Demando",
+        "Ellipso",
+        "Imanbek",
+        "KSHMR",
+        "Quarantino",
+        "R3HAB",
+        "Scott Rill",
+        "Tiësto",
+        "Tom Enzy",
+        "Travis Scott",
+        "VIZE"
+    ],
+    "pop edm": [
+        "B-Case",
+        "Dillistone",
+        "EQRIC",
+        "Far Out",
+        "Jinco",
+        "Mickey Valen",
+        "Miles Away",
+        "Rompasso",
+        "Rootkit",
+        "Swanky Tunes",
+        "Topic",
+        "Vanic",
+        "twocolors"
+    ],
+    "post-teen pop": [
+        "Bea Miller",
+        "Camila Cabello",
+        "Demi Lovato",
+        "Dove Cameron",
+        "Jason Derulo",
+        "Kim Petras",
+        "Madison Beer",
+        "Nina Nesbitt",
+        "Selena Gomez",
+        "Tate McRae",
+        "Tove Lo"
+    ],
+    "modern rock": [
+        "Arrested Youth",
+        "Bea Miller",
+        "Fall Out Boy",
+        "Imagine Dragons",
+        "Jaymes Young",
+        "Kaiser Chiefs",
+        "PVRIS",
+        "The White Stripes",
+        "UPSAHL",
+        "Unlike Pluto",
+        "grandson"
+    ],
+    "rap": [
+        "Denzel Curry",
+        "Drake",
+        "Eminem",
+        "Hopsin",
+        "JACKBOYS",
+        "Kanye West",
+        "NF",
+        "PARTYNEXTDOOR",
+        "Rick Ross",
+        "Travis Scott"
+    ],
+    "hip hop": [
+        "Denzel Curry",
+        "Drake",
+        "Eminem",
+        "Frank Ocean",
+        "Hopsin",
+        "NF",
+        "Rick Ross",
+        "Talib Kweli"
+    ],
+    "social media pop": [
+        "Dove Cameron",
+        "Garrett Nash",
+        "Mothica",
+        "Royal & the Serpent",
+        "Stela Cole",
+        "UPSAHL",
+        "bülow"
+    ],
+    "art pop": [
+        "Billie Eilish",
+        "Erika de Casier",
+        "Kim Petras",
+        "Lana Del Rey",
+        "Purity Ring",
+        "Tove Lo"
+    ],
+    "uk pop": [
+        "Adele",
+        "Dermot Kennedy",
+        "Dua Lipa",
+        "Ed Sheeran",
+        "Griff",
+        "Nina Nesbitt"
+    ],
+    "permanent wave": [
+        "Coldplay",
+        "Green Day",
+        "Radiohead",
+        "Red Hot Chili Peppers",
+        "The White Stripes"
+    ],
+    "modern alternative rock": [
+        "Arrested Youth",
+        "Neoni",
+        "PVRIS",
+        "Unlike Pluto",
+        "grandson"
+    ],
+    "escape room": [
+        "Erika de Casier",
+        "KAYTRANADA",
+        "Kim Petras",
+        "Purity Ring",
+        "Ängie"
+    ],
+    "electronic trap": ["Carnage", "Juelz", "MEMBA", "TroyBoi", "Vanic"],
+    "gaming edm": ["Barren Gates", "Cadmium", "Cartoon", "Far Out", "Rootkit"],
+    "alternative rock": [
+        "Alien Ant Farm",
+        "Kaiser Chiefs",
+        "Radiohead",
+        "Red Hot Chili Peppers",
+        "The White Stripes"
+    ],
+    "progressive house": [
+        "Afrojack",
+        "Calvin Harris",
+        "MOGUAI",
+        "Martin Garrix",
+        "Swanky Tunes"
+    ],
+    "french hip hop": ["Damso", "Georgio", "Orelsan", "Yuzmv"],
+    "progressive electro house": ["MOGUAI", "R3HAB", "Swanky Tunes", "Tujamo"],
+    "album rock": [
+        "Blue Öyster Cult",
+        "Cutting Crew",
+        "Led Zeppelin",
+        "The Kinks"
+    ],
+    "classic rock": [
+        "Blue Öyster Cult",
+        "Led Zeppelin",
+        "The Doors",
+        "The Kinks"
+    ],
+    "psychedelic trance": [
+        "Ghost Rider",
+        "Infected Mushroom",
+        "Ranji",
+        "WHITENO1SE"
+    ],
+    "new french touch": ["Feder", "Georgio", "Kid Francescoli", "Nebbra"],
+    "indie electropop": [
+        "EVAN GIIA",
+        "Echos",
+        "Emilia Ali",
+        "Royal & the Serpent"
+    ],
+    "trap": ["Carnage", "JACKBOYS", "PARTYNEXTDOOR", "Rick Ross"],
+    "sad rap": ["Goody Grace", "MASN", "Ryan Caraveo", "Shyler"],
+    "deep groove house": ["Gorgon City", "SIDEPIECE", "Solardo", "Wh0"],
+    "uk dance": ["Calvin Harris", "Gorgon City", "Solardo", "Wh0"],
+    "g-house": ["Damian Spider", "KEAN DYSSO", "Linius", "Rompasso"],
+    "wave": ["CASHFORGOLD", "Sublab", "Tim Schaufert", "ΔXIUS LIИK"],
+    "swedish pop": ["ABBA", "SVEA", "Tove Lo"],
+    "la pop": ["Karra", "Stephen", "why mona"],
+    "indie soul": ["Hayden James", "KAYTRANADA", "Young Franco"],
+    "vapor soul": ["Mothica", "Mura Masa", "Prinze George"],
+    "future bass": ["MEMBA", "Rootkit", "Vanic"],
+    "vapor twitch": ["Juelz", "MEMBA", "Vanic"],
+    "aussietronica": ["Hayden James", "Human Movement", "Young Franco"],
+    "art rock": ["Blue Öyster Cult", "Radiohead", "The Kinks"],
+    "metropopolis": ["Purity Ring", "Ruelle", "Tove Lo"],
+    "sad lo-fi": ["13eam5", "MASN", "Shyler"],
+    "canadian hip hop": ["Ali Gatie", "Drake", "SonReal"],
+    "alternative r&b": ["Frank Ocean", "H.E.R.", "Joji"],
+    "r&b": ["H.E.R.", "Michael Jackson", "PARTYNEXTDOOR"],
+    "brazilian edm": ["FractaLL", "Tom Enzy", "VOLAC"],
+    "lithuanian edm": ["Demando", "KEAN DYSSO", "Linius"],
+    "big room": ["Afrojack", "KSHMR", "Tiësto"],
+    "dutch edm": ["BLR", "Martin Garrix", "Tiësto"],
+    "bass house": ["SHY FX", "SIDEPIECE", "VOLAC"],
+    "indietronica": ["Purity Ring", "The Shoes", "bülow"],
+    "southern hip hop": ["André 3000", "Rick Ross", "Talib Kweli"],
+    "chillstep": ["Rootkit", "Sublab", "Tim Schaufert"],
+    "german dance": ["Kush Kush", "Topic", "VIZE"],
+    "rap conscient": ["Damso", "Orelsan"],
+    "dutch house": ["Afrojack", "R3HAB"],
+    "rap calme": ["Georgio", "Yuzmv"],
+    "indian edm": ["KSHMR", "MEMBA"],
+    "speedrun": ["League of Legends", "TheFatRat"],
+    "video game music": ["Death Stranding: Timefall", "League of Legends"],
+    "psychedelic rock": ["The Doors", "The Kinks"],
+    "mellow gold": ["Cutting Crew", "The Kinks"],
+    "blues rock": ["Blue Öyster Cult", "The White Stripes"],
+    "funk metal": ["Alien Ant Farm", "Red Hot Chili Peppers"],
+    "lgbtq+ hip hop": ["Frank Ocean", "KAYTRANADA"],
+    "pixie": ["Against The Current", "PVRIS"],
+    "hard rock": ["Blue Öyster Cult", "Led Zeppelin"],
+    "dark trap": ["Denzel Curry", "Haarper"],
+    "emo rap": ["MASN", "Shyler"],
+    "vapor pop": ["AViVA", "Prinze George"],
+    "toronto rap": ["Drake", "PARTYNEXTDOOR"],
+    "urban contemporary": ["PARTYNEXTDOOR", "Rihanna"],
+    "disco house": ["Crystal Waters", "Wh0"],
+    "indie pop rap": ["Ryan Caraveo", "SonReal"],
+    "viral pop": ["Joji", "Nina Nesbitt"],
+    "french indie pop": ["Kid Francescoli", "The Shoes"],
+    "french indietronica": ["Kid Francescoli", "The Shoes"],
+    "canadian electronic": ["Juelz", "Rezz"],
+    "soft rock": ["Blue Öyster Cult", "Cutting Crew"],
+    "anime score": ["Hiroyuki Sawano", "Joe Hisaishi"],
+    "japanese soundtrack": ["Hiroyuki Sawano", "Joe Hisaishi"],
+    "soul": ["Bill Withers", "Michael Jackson"],
+    "dirty south rap": ["André 3000", "Rick Ross"],
+    "canadian electropop": ["Madalen Duke", "Purity Ring"],
+    "conscious hip hop": ["Hopsin", "Talib Kweli"],
+    "german pop": ["MAJAN", "Nico Santos"],
+    "complextro": ["Rootkit", "Zedd"],
+    "melodic dubstep": ["Far Out", "Rootkit"],
+    "russian edm": ["Rompasso", "Swanky Tunes"],
+    "german techno": ["MOGUAI", "Zedd"],
+    "underground hip hop": ["Denzel Curry", "Pell"],
+    "hamburg hip hop": ["Nina Chuba"],
+    "europop": ["ABBA"],
+    "old school rap francais": ["Orelsan"],
+    "belgian pop": ["Angèle"],
+    "variete francaise": ["Angèle"],
+    "deep pop edm": ["Au/Ra"],
+    "moombahton": ["Diplo"],
+    "ninja": ["Diplo"],
+    "dark clubbing": ["One True God"],
+    "experimental bass": ["One True God"],
+    "lithuanian electronic": ["Lucky Luke"],
+    "transpop": ["Kim Petras"],
+    "british invasion": ["The Kinks"],
+    "folk rock": ["The Kinks"],
+    "glam rock": ["The Kinks"],
+    "protopunk": ["The Kinks"],
+    "indie quebecois": ["Geoffroy"],
+    "weirdcore": ["Never Get Used To People"],
+    "chanson": ["Cœur De Pirate"],
+    "french pop": ["Cœur De Pirate"],
+    "nouvelle chanson francaise": ["Cœur De Pirate"],
+    "belgian hip hop": ["Damso"],
+    "pop urbaine": ["Damso"],
+    "rap belge": ["Damso"],
+    "punk": ["Green Day"],
+    "detroit rock": ["The White Stripes"],
+    "garage rock": ["The White Stripes"],
+    "modern blues rock": ["The White Stripes"],
+    "punk blues": ["The White Stripes"],
+    "alternative metal": ["Alien Ant Farm"],
+    "nu metal": ["Alien Ant Farm"],
+    "post-grunge": ["Alien Ant Farm"],
+    "rap rock": ["Alien Ant Farm"],
+    "british soul": ["Adele"],
+    "pop soul": ["Adele"],
+    "colombian indie": ["Ela Minus"],
+    "latintronica": ["Ela Minus"],
+    "pop electronico": ["Ela Minus"],
+    "scandinavian r&b": ["Erika de Casier"],
+    "channel islands indie": ["Mura Masa"],
+    "brooklyn drill": ["Pop Smoke"],
+    "arab trap": ["Inova"],
+    "nyc pop": ["EVAN GIIA"],
+    "pop emo": ["PVRIS"],
+    "funk rock": ["Red Hot Chili Peppers"],
+    "tekk": ["Mausio"],
+    "pop nacional": ["Alok"],
+    "k-pop": ["MAMAMOO"],
+    "k-pop girl group": ["MAMAMOO"],
+    "aesthetic rap": ["Haarper"],
+    "drift phonk": ["Haarper"],
+    "neon pop punk": ["Against The Current"],
+    "pop punk": ["Against The Current"],
+    "grime": ["Wiley"],
+    "uk dancehall": ["Wiley"],
+    "uk hip hop": ["Wiley"],
+    "zxc": ["Shyler"],
+    "estonian electronic": ["Jozels"],
+    "ohio hip hop": ["Machine Gun Kelly"],
+    "etherpop": ["Prinze George"],
+    "deep house": ["Solardo"],
+    "desi pop": ["Sanjoy"],
+    "barbadian pop": ["Rihanna"],
+    "acid rock": ["The Doors"],
+    "diva house": ["Crystal Waters"],
+    "hip house": ["Crystal Waters"],
+    "vocal house": ["Crystal Waters"],
+    "brostep": ["Tiësto"],
+    "trance": ["Tiësto"],
+    "detroit hip hop": ["Eminem"],
+    "bc underground hip hop": ["SonReal"],
+    "canadian old school hip hop": ["SonReal"],
+    "drum and bass": ["SHY FX"],
+    "jungle": ["SHY FX"],
+    "uk alternative hip hop": ["SHY FX"],
+    "uk dnb": ["SHY FX"],
+    "electrofox": ["The Shoes"],
+    "electronica": ["The Shoes"],
+    "filter house": ["The Shoes"],
+    "nederpop": ["The Shoes"],
+    "new rave": ["The Shoes"],
+    "electra": ["Rezz"],
+    "new romantic": ["Cutting Crew"],
+    "new wave": ["Cutting Crew"],
+    "new wave pop": ["Cutting Crew"],
+    "synthpop": ["Cutting Crew"],
+    "anime": ["Joe Hisaishi"],
+    "japanese classical": ["Joe Hisaishi"],
+    "metal": ["Blue Öyster Cult"],
+    "melancholia": ["Radiohead"],
+    "oxford indie": ["Radiohead"],
+    "bedroom pop": ["Clairo"],
+    "indie pop": ["Clairo"],
+    "funk": ["Bill Withers"],
+    "motown": ["Bill Withers"],
+    "quiet storm": ["Bill Withers"],
+    "yacht rock": ["Bobby Caldwell"],
+    "neo soul": ["Frank Ocean"],
+    "atl hip hop": ["André 3000"],
+    "chicago rap": ["Kanye West"],
+    "emo": ["Fall Out Boy"],
+    "gauze pop": ["Hayden James"],
+    "future garage": ["Gorgon City"],
+    "dream smp": ["Alec Benjamin"],
+    "v-pop": ["Giang Pham"],
+    "epicore": ["Scott Benson Band"],
+    "chillwave": ["Purity Ring"],
+    "dream pop": ["Purity Ring"],
+    "edmonton indie": ["Purity Ring"],
+    "grave wave": ["Purity Ring"],
+    "shimmer pop": ["Purity Ring"],
+    "alternative hip hop": ["Talib Kweli"],
+    "east coast hip hop": ["Talib Kweli"],
+    "hardcore hip hop": ["Talib Kweli"],
+    "neo-singer-songwriter": ["Nina Nesbitt"],
+    "pop rock": ["Nina Nesbitt"],
+    "melodic metalcore": ["Bring Me The Horizon"],
+    "metalcore": ["Bring Me The Horizon"],
+    "uk metalcore": ["Bring Me The Horizon"],
+    "canadian pop": ["Drake"],
+    "gangster rap": ["Rick Ross"],
+    "trap latino": ["Myke Towers"],
+    "sky room": ["Swanky Tunes"],
+    "australian hip hop": ["Masked Wolf"],
+    "swedish electropop": ["Tove Lo"],
+    "swedish synthpop": ["Tove Lo"],
+    "indie r&b": ["Fousheé"],
+    "pop house": ["MEDUZA"],
+    "folk-pop": ["Dermot Kennedy"],
+    "irish pop": ["Dermot Kennedy"],
+    "funky house": ["Wh0"],
+    "funky tech house": ["Wh0"],
+    "colombian pop": ["Shakira"],
+    "latin": ["Shakira"],
+    "latin pop": ["Shakira"],
+    "r&b en espanol": ["ROSALÍA"],
+    "talent show": ["Bea Miller"],
+    "lithuanian hip hop": ["Kordas"],
+    "dutch dnb": ["Buunshin"],
+    "drill": ["Denzel Curry"],
+    "miami hip hop": ["Denzel Curry"],
+    "modern indie pop": ["UPSAHL"],
+    "german hip hop": ["MAJAN"],
+    "german trap": ["MAJAN"],
+    "modern alternative pop": ["Royal & the Serpent"],
+    "trap soul": ["Dutch Melrose"],
+    "norwegian pop": ["Alida"]
 }
