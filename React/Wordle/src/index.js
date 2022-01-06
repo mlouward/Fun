@@ -1,11 +1,25 @@
 import React from "react";
 import ReactDOM from "react-dom";
+import Select from "react-select";
 import "./index.css";
-import words5letters from "./assets/words5.txt";
+import words5_en from "./assets/wordlists/words5_en.txt";
+import words5_fr from "./assets/wordlists/words5_fr.txt";
+import words6_fr from "./assets/wordlists/words6_fr.txt";
+import words7_fr from "./assets/wordlists/words7_fr.txt";
+import words8_fr from "./assets/wordlists/words8_fr.txt";
 
 // Game of Wordle: given a secret word, the user must guess the word
 const MAX_GUESSES = 7;
-const WORD_LENGTH = 5;
+let WORD_LENGTH = 0;
+let GAME_WORDLIST = null;
+
+const options = [
+    { value: { path: words5_en, count: 1500 }, label: "English 5 letters" },
+    { value: { path: words5_fr, count: 2000 }, label: "French 5 letters" },
+    { value: { path: words6_fr, count: 6000 }, label: "French 6 letters" },
+    { value: { path: words7_fr, count: 6000 }, label: "French 7 letters" },
+    { value: { path: words8_fr, count: 8000 }, label: "French 8 letters" },
+];
 
 // Square class
 function Square(props) {
@@ -42,6 +56,9 @@ class Grid extends React.Component {
 
     render() {
         // Grid of "size" columns and MAX_GUESSES rows
+        if (GAME_WORDLIST === null) {
+            return null;
+        }
         return (
             <div className="grid">
                 {Array(MAX_GUESSES)
@@ -80,22 +97,27 @@ class Game extends React.Component {
 
     async componentDidMount() {
         // Event listener for user input
-        document.addEventListener(
-            "keydown",
-            (event) => this.handleKeyDown(event)
-            // false
+        document.addEventListener("keydown", (event) =>
+            this.handleKeyDown(event)
         );
+    }
+
+    getWordsFromFile = async (selection) => {
         // fetch words from text file and save them in uppercase
-        this.allWords = await fetch(words5letters)
+        GAME_WORDLIST = selection.value.path;
+        console.log(GAME_WORDLIST);
+        this.allWords = await fetch(GAME_WORDLIST)
             .then((data) => data.text())
             .then((text) => {
-                return text.split("\n").map((x) => x.toUpperCase());
+                return text.split("\r\n").map((x) => x.toUpperCase());
             });
-        // We keep only 1500 words, the others are too uncommon
-        this.playableWords = this.allWords.slice(0, 1500);
+        // set WORD_LENGTH to the length of the words in the list
+        WORD_LENGTH = this.allWords[0].length;
+        // We keep only 2000 words, the others are too uncommon
+        this.playableWords = this.allWords.slice(0, selection.value.count);
         // set the word for current game
         this.setWord();
-    }
+    };
 
     getLettersColors() {
         const lastWordColors =
@@ -236,6 +258,7 @@ class Game extends React.Component {
     }
 
     setWord = () => {
+        console.log();
         // Select a random word
         const secretWord =
             this.playableWords[
@@ -260,6 +283,15 @@ class Game extends React.Component {
                 <header>
                     <h1>Guess the Word!</h1>
                 </header>
+                <div className="selection-menu">
+                    <Select
+                        onChange={this.getWordsFromFile}
+                        options={options}
+                        isSearchable={false}
+                        defaultValue={options[0]}
+                        hideSelectedOptions
+                    />{" "}
+                </div>
                 <div className="game-board">
                     <Grid
                         size={WORD_LENGTH}

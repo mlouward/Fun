@@ -78,7 +78,7 @@ button {
 .game {
     display: flex;
     flex-direction: column;
-    width: 40%;
+    width: max(50%, 800px);
     color: #ccc;
     margin: 0 auto;
     height: 100%;
@@ -96,4 +96,14 @@ button {
     justify-content: center;
     align-items: left;
     padding: 0.5rem 0;
+}
+
+.selection-menu {
+    display: flex;
+    /* width: 50%; */
+    justify-content: center;
+    align-items: center;
+    flex-direction: column;
+    margin: 1rem 0;
+    color: #222;
 }
