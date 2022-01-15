@@ -1,0 +1,18 @@
+find: ‘/etc/polkit-1/localauthority’find: ‘/etc/polkit-1/localauthority’: Permission denied
+: Permission denied
+find: ‘/etc/ssl/private’: Permission denied
+find: ‘/etc/ssl/private’: Permission denied
+find: ‘/etc/vpnc’: Permission denied
+find: ‘/etc/vpnc’: Permission denied
+find: ‘/etc/ipsec.d/private’: Permission denied
+find: ‘/etc/ipsec.d/private’: Permission denied
+find: ‘/root’: Permission denied
+find: ‘/root’: Permission denied
+find: ‘/mnt/e/$RECYCLE.BIN/S-1-5-21-1392507630-271779376-1316509061-1005’: Permission denied
+find: ‘/mnt/e/$RECYCLE.BIN/S-1-5-21-1392507630-271779376-1316509061-1005’: Permission denied
+find: ‘/mnt/e/$RECYCLE.BIN/S-1-5-21-3206785710-3335874091-2837325296-1001’: Permission denied
+find: ‘/mnt/e/$RECYCLE.BIN/S-1-5-21-3206785710-3335874091-2837325296-1001’: Permission denied
+find: ‘/mnt/e/DeliveryOptimization/Cache/99de02e99965a6e0365b2a26c78ee0cad79837d0’: Permission denied
+find: ‘/mnt/e/DeliveryOptimization/Cache/99de02e99965a6e0365b2a26c78ee0cad79837d0’: Permission denied
+find: ‘/mnt/e/DeliveryOptimization/Cache/e019723cdc7a20044aeb1bd8933902226f09cc5d’: Permission denied
+find: ‘/mnt/e/DeliveryOptimization/Cache/e019723cdc7a20044aeb1bd8933902226f09cc5d’: Permission denied
