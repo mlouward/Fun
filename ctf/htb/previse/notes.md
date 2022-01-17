@@ -15,6 +15,7 @@ Access admin panel, create account, login and view php sourcecode.
 We find a list of potential users in out.log, config.php and a call to "exec" => potential vulnerability
 
 > config.php
+
 ```php
 function connectDB(){
     $host = 'localhost';
