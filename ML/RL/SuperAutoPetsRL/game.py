@@ -1,7 +1,6 @@
-from pet import Pet
 from effect import Effect, Trigger
 from food import Food
-
+from pet import Pet
 
 if __name__ == "__main__":
     ant = Pet(

@@ -1,8 +1,7 @@
-from tkinter import N
 from effect import Trigger
 
 data = {
-    "pets": [
+    "pets":
         {
             "ant": {
                 "tier": 1,
@@ -977,7 +976,8 @@ data = {
                 "baseHealth": 3,
                 "ability": {
                     "description": (
-                        "Friend ahead repeats their ability in battle as if they were level 1/2/3."
+                        "Friend ahead repeats their ability in battle as if they were"
+                        " level 1/2/3."
                     ),
                     "trigger": Trigger.CastsAbility,
                     "triggeredBy": "friendAhead",
@@ -989,5 +989,4 @@ data = {
                 },
             },
         }
-    ]
 }

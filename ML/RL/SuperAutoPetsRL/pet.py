@@ -1,5 +1,6 @@
 from __future__ import annotations
-from typing import List, Union
+
+from typing import List
 
 from effect import Effect
 from food import Food
@@ -161,6 +162,10 @@ class Pet:
         return self.get_level() + (
             self.get_effect_values()[0] if self.name.lower() == "pig" else 0
         )
+
+    @staticmethod
+    def create_pet(pet_name: str):
+        pass
 
     def __eq__(self, __o: object) -> bool:
         return (
