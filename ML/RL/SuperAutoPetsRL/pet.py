@@ -136,11 +136,22 @@ class Pet:
         """
         Returns the effect values of the pet given its level
         """
-        if self.name.lower() in ("mosquito", "elephant"):
+        if self.name.lower() in {
+            "mosquito",
+            "elephant",
+            "giraffe",
+            "turtle",
+            "crocodile",
+        }:
             self.effect.target.n *= self.get_level()
             return self.effect.parameters
         elif self.name.lower() == "rat":
             self.effect.n *= self.get_level()
+            return self.effect.parameters
+        elif self.name.lower() == "cat":
+            return [1 + self.get_level()]
+        elif self.name.lower() == "gorilla":
+            return self.effect.max_triggers * self.get_level()
         return self.effect.parameters * self.get_level()
 
     def get_resell_cost(self) -> int:

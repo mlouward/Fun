@@ -25,7 +25,8 @@ class Trigger(Enum):
     Faint = 18
     Knockout = 19
     EndOfTurn = 20
-    Permanent = 21
+    BuyTier1Pet = 21
+    CastsAbility = 22
 
 
 class Effect:
@@ -40,6 +41,7 @@ class Effect:
         kind: Union[str, None] = None,
         target: Union[Dict, None] = None,
         n: Union[int, None] = None,
+        max_triggers: Union[int, None] = None,
     ) -> None:
         self.trigger = trigger
         self.description = description
@@ -48,6 +50,7 @@ class Effect:
         self.kind = kind
         self.target = target
         self.n = n
+        self.max_triggers = max_triggers
 
     @property
     def untilEndOfBattle(self) -> Union[bool, None]:
@@ -111,6 +114,15 @@ class Effect:
     @n.setter
     def n(self, value):
         self._n = value
+
+    @property
+    def max_triggers(self):
+        """The max_triggers property."""
+        return self._max_triggers
+
+    @max_triggers.setter
+    def max_triggers(self, value):
+        self._max_triggers = value
 
     def __str__(self) -> str:
         return f"{self.trigger} {self.description} {self.parameters}"
