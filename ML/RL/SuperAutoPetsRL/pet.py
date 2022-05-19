@@ -279,13 +279,14 @@ class Pet:
             and self.experience == __o.experience
             and self.health == __o.health
             and self.damage == __o.damage
-            and self.pet_effect == __o.pet_effect
+            # TODO implement Effect __eq__
+            # and self.pet_effect == __o.pet_effect
             and self.held_food == __o.held_food
         )
 
     def __str__(self) -> str:
         return (
-            f"Name: {self.name} - {self.health}/{self.damage} - {self.experience}xp"
+            f"Name: {self.name} - {self.damage}/{self.health} - {self.experience}xp"
             f" (level {self.get_level()}) Tier: {self.tier} -"
             f" food:{self.held_food}\nEffect: {self.pet_effect}\n"
         )
