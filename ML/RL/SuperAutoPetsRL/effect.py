@@ -1,32 +1,10 @@
-from enum import Enum
-from typing import Dict, List, Union
+from __future__ import annotations
 
+from typing import Dict, List, Set, Union
 
-class Trigger(Enum):
-    """Docstring for Triggers."""
-
-    Buy = 1
-    BuyFriend = 2
-    Summoned = 3
-    FriendSummoned = 4
-    SellPet = 5
-    FriendSold = 6
-    LevelUp = 7
-    BuyFood = 8
-    EatFood = 9
-    FriendEatsFood = 10
-    StartOfTurn = 11
-    StartOfBattle = 12
-    BeforeAttack = 13
-    FriendAheadAttacks = 14
-    FriendAheadFaints = 15
-    FriendFaints = 16
-    Hurt = 17
-    Faint = 18
-    Knockout = 19
-    EndOfTurn = 20
-    BuyTier1Pet = 21
-    CastsAbility = 22
+import pet
+from food import Food
+from triggers import Trigger
 
 
 class Effect:
@@ -34,16 +12,28 @@ class Effect:
 
     def __init__(
         self,
-        trigger: Trigger,
-        description: str,
-        parameters: List[int],
+        trigger: Union[Trigger, None] = None,
+        triggered_by: str = "",
+        description: str = "",
+        parameters: Union[List[int], None] = None,
         untilEndOfBattle: Union[bool, None] = None,
         kind: Union[str, None] = None,
-        target: Union[Dict, None] = None,
-        n: Union[int, None] = None,
+        target: Union[Union[Set[str], Dict[str, str]], None] = None,
+        from_pet: Union[Dict[str, str], None] = None,
+        to_pet: Union[Dict[str, str], None] = None,
+        n: Union[int, List[int], None] = None,
         max_triggers: Union[int, None] = None,
+        affected_pet: Union[pet.Pet, None] = None,
+        team: Union[str, None] = None,
+        tier: Union[int, None] = None,
+        attack: Union[int, None] = None,
+        health: Union[int, None] = None,
+        status: Union[str, None] = None,
+        food: Union[Food, None] = None,
+        damage: Union[int, None] = None,
     ) -> None:
         self.trigger = trigger
+        self.triggered_by = triggered_by
         self.description = description
         self.parameters = parameters
         self.untilEndOfBattle = untilEndOfBattle
@@ -51,6 +41,115 @@ class Effect:
         self.target = target
         self.n = n
         self.max_triggers = max_triggers
+        self.affected_pet = affected_pet
+        self.team = team
+        self.from_pet = from_pet
+        self.to_pet = to_pet
+        self.tier = tier
+        self.attack = attack
+        self.health = health
+        self.status = status
+        self.food = food
+        self.damage = damage
+
+    @property
+    def damage(self) -> Union[int, None]:
+        """The damage property."""
+        return self._damage
+
+    @damage.setter
+    def damage(self, value: Union[int, None]) -> None:
+        self._damage = value
+
+    @property
+    def food(self) -> Union[Food, None]:
+        """The food property."""
+        return self._food
+
+    @food.setter
+    def food(self, value: Union[Food, None]):
+        self._food = value
+
+    @property
+    def status(self) -> Union[str, None]:
+        """The status property."""
+        return self._status
+
+    @status.setter
+    def status(self, value: Union[str, None]):
+        self._status = value
+
+    @property
+    def health(self) -> Union[int, None]:
+        """The health property."""
+        return self._health
+
+    @health.setter
+    def health(self, value: Union[int, None]):
+        self._health = value
+
+    @property
+    def attack(self) -> Union[int, None]:
+        """The attack property."""
+        return self._attack
+
+    @attack.setter
+    def attack(self, value: Union[int, None]):
+        self._attack = value
+
+    @property
+    def tier(self) -> Union[int, None]:
+        """The tier property."""
+        return self._tier
+
+    @tier.setter
+    def tier(self, value: Union[int, None]):
+        self._tier = value
+
+    @property
+    def to_pet(self):
+        """The to_pet property."""
+        return self._to_pet
+
+    @to_pet.setter
+    def to_pet(self, value):
+        self._to_pet = value
+
+    @property
+    def from_pet(self):
+        """The from_pet property."""
+        return self._from_pet
+
+    @from_pet.setter
+    def from_pet(self, value):
+        self._from_pet = value
+
+    @property
+    def team(self) -> Union[str, None]:
+        """The team property."""
+        return self._team
+
+    @team.setter
+    def team(self, value: Union[str, None]):
+        self._team = value
+
+    @property
+    def affected_pet(self) -> Union[pet.Pet, None]:
+        """The pet property."""
+        return self._pet
+
+    @affected_pet.setter
+    def affected_pet(self, value: Union[pet.Pet, None]):
+        self._pet = value
+
+    @property
+    def triggered_by(self):
+        """The triggered_by property."""
+        return self._triggered_by
+
+    @triggered_by.setter
+    def triggered_by(self, value):
+        self._triggered_by = value
 
     @property
     def untilEndOfBattle(self) -> Union[bool, None]:
@@ -80,12 +179,12 @@ class Effect:
         self._target = value
 
     @property
-    def trigger(self):
+    def trigger(self) -> Union[Trigger, None]:
         """The trigger property."""
         return self._trigger
 
     @trigger.setter
-    def trigger(self, value: Trigger):
+    def trigger(self, value: Union[Trigger, None]):
         self._trigger = value
 
     @property
@@ -98,12 +197,12 @@ class Effect:
         self._description = value
 
     @property
-    def parameters(self):
+    def parameters(self) -> Union[List[int], None]:
         """The parameters property."""
         return self._parameters
 
     @parameters.setter
-    def parameters(self, value: List[int]):
+    def parameters(self, value: Union[List[int], None]):
         self._parameters = value
 
     @property
@@ -125,4 +224,4 @@ class Effect:
         self._max_triggers = value
 
     def __str__(self) -> str:
-        return f"{self.trigger} {self.description} {self.parameters}"
+        return str({k: v for k, v in self.__dict__.items() if v is not None})

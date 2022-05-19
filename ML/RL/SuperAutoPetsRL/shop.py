@@ -2,7 +2,6 @@ import random as rd
 from typing import List
 
 from data import data
-from effect import Effect, Trigger
 from pet import Pet
 
 # Build dict of tiers to list of available pets

@@ -1,8 +1,10 @@
 from __future__ import annotations
+import random as rd
 
-from typing import List
+from typing import List, Union
 
-from effect import Effect
+from data import data
+import effect
 from food import Food
 
 
@@ -13,7 +15,8 @@ class Pet:
         damage: int,
         health: int,
         tier: int,
-        effect: Effect,
+        pet_effect: effect.Effect = effect.Effect(),
+        pet_effects: Union[List[effect.Effect], None] = None,
         cost: int = 3,
         experience: int = 1,
         held_food: Food | None = None,
@@ -22,10 +25,20 @@ class Pet:
         self.damage = damage
         self.health = health
         self.tier = tier
-        self.effect = effect
+        self.pet_effect = pet_effect
         self.cost = cost
         self.experience = experience
         self.held_food = held_food
+        self.pet_effects = pet_effects
+
+    @property
+    def pet_effects(self):
+        """The pet_effects property."""
+        return self._pet_effects
+
+    @pet_effects.setter
+    def pet_effects(self, value):
+        self._pet_effects = value
 
     @property
     def name(self) -> str:
@@ -66,13 +79,13 @@ class Pet:
         self._tier = value
 
     @property
-    def effect(self) -> Effect:
+    def pet_effect(self) -> effect.Effect:
         """The effect property."""
         return self._effect
 
-    @effect.setter
-    def effect(self, value: Effect):
-        if not isinstance(value, Effect):
+    @pet_effect.setter
+    def pet_effect(self, value: effect.Effect):
+        if not isinstance(value, effect.Effect):
             raise TypeError(f"Effect must be of type Effect, got {type(value)}")
         self._effect = value
 
@@ -133,10 +146,12 @@ class Pet:
         self.damage = max(self.damage, other.damage) + 1
         self.experience += other.experience
 
-    def get_effect_values(self) -> List[int]:
+    def get_effect_values(self) -> Union[List[int], None]:
         """
         Returns the effect values of the pet given its level
         """
+        if not self.pet_effect:
+            raise RuntimeError("Pet has no effect")
         if self.name.lower() in {
             "mosquito",
             "elephant",
@@ -144,28 +159,117 @@ class Pet:
             "turtle",
             "crocodile",
         }:
-            self.effect.target.n *= self.get_level()
-            return self.effect.parameters
+            self.pet_effect.target.n *= self.get_level()
+            return self.pet_effect.parameters
         elif self.name.lower() == "rat":
-            self.effect.n *= self.get_level()
-            return self.effect.parameters
+            self.pet_effect.n *= self.get_level()
+            return self.pet_effect.parameters
         elif self.name.lower() == "cat":
             return [1 + self.get_level()]
         elif self.name.lower() == "gorilla":
-            return self.effect.max_triggers * self.get_level()
-        return self.effect.parameters * self.get_level()
-
-    def get_resell_cost(self) -> int:
-        """
-        Returns how much money a pet is worth to sell.
-        """
-        return self.get_level() + (
-            self.get_effect_values()[0] if self.name.lower() == "pig" else 0
-        )
+            return self.pet_effect.max_triggers * self.get_level()
+        if self.pet_effect.parameters:
+            return self.pet_effect.parameters * self.get_level()
+        raise RuntimeError(f"Unrecognized pet: '{self.name}'")
 
     @staticmethod
-    def create_pet(pet_name: str):
-        pass
+    def create_pet(pet_name: str) -> Union[Pet, None]:
+        """
+        Initializes a pet with its stats and effect.
+
+            :param str pet_name: The name of the pet to initialize
+            :return: The initialized pet
+            :rtype: Pet
+            :raises ValueError: If the pet name is not in the data
+            :raises RuntimeError: If the pet effects could not be set
+        """
+        if not pet_name.lower() in data["pets"]:
+            raise ValueError(f"Unknown pet name: '{pet_name}'")
+        pet_data = data["pets"][pet_name.lower()]
+        pet = Pet(
+            pet_name.lower(),
+            pet_data["baseAttack"],
+            pet_data["baseHealth"],
+            pet_data["tier"],
+            effect.Effect(
+                pet_data["ability"]["trigger"],
+                pet_data["ability"]["triggeredBy"],
+                pet_data["ability"]["description"],
+                # Can be None if does not scale with level
+                pet_data["parameters"] if "parameters" in pet_data else None,
+            ),
+            held_food=Food.create_food(pet_data["heldFood"])
+            if "heldFood" in pet_data
+            else None,
+        )
+
+        # TODO move to "on_trigger"
+        # # handle multiple effect options (ox, dog, ...)
+        # if pet_data["effect"]["kind"] == "oneOf":
+        #     chosen_effect = {"effect": rd.choice(pet_data["effect"]["effects"])}
+        #     Pet.__set_effect_data(pet, chosen_effect)
+        # elif pet_data["effect"]["kind"] == "allOf":
+        #     for unique_effect in pet_data["effect"]["effects"]:
+        #         Pet.__set_effect_data(pet, unique_effect)
+
+        # handle no effect (scorpion)
+        if "effect" not in pet_data:
+            return pet
+        else:
+            # "Normal" animal effect to set
+            Pet.__set_effect_data(pet, pet_data)
+        if pet.pet_effect:
+            return pet
+        raise RuntimeError(f"Could not set effect data for: '{pet_name}'")
+
+    @staticmethod
+    def __set_effect_data(pet: Pet, pet_data: dict) -> None:
+        """
+        Sets the appropriate effect fields for the pet.
+            :param Pet pet: The pet to set the effect for
+            :param dict pet_data: The pet data to use
+        """
+        pet.pet_effect.kind = pet_data["effect"]["kind"]
+        if pet_data["effect"]["kind"] == "modifyStats":
+            pet.pet_effect.target = pet_data["effect"]["target"]
+            pet.pet_effect.untilEndOfBattle = pet_data["effect"]["untilEndOfBattle"]
+        elif pet_data["effect"]["kind"] == "summonPet":
+            pet.pet_effect.affected_pet = pet_data["effect"]["pet"]
+            pet.pet_effect.n = pet_data["effect"]["n"]
+            pet.pet_effect.team = pet_data["effect"]["team"]
+        elif pet_data["effect"]["kind"] in (
+            "dealDamage",
+            "reduceHealth",
+            "swallow",
+            "repeatAbility",
+        ):
+            # Ex: crocodile, damage is fixed by level
+            if "damage" in pet_data["effect"]:
+                pet.pet_effect.damage = pet_data["effect"]["damage"]
+            pet.pet_effect.target = pet_data["effect"]["target"]
+        elif pet_data["effect"]["kind"] in ("transferStats", "transferAbility"):
+            pet.pet_effect.from_pet = pet_data["effect"]["from"]
+            pet.pet_effect.to_pet = pet_data["effect"]["to"]
+        elif pet_data["effect"]["kind"] == "summonRandomPet":
+            pet.pet_effect.tier = pet_data["effect"]["tier"]
+            pet.pet_effect.attack = pet_data["effect"]["attack"]
+            pet.pet_effect.health = pet_data["effect"]["health"]
+        elif pet_data["effect"]["kind"] == "applyStatus":
+            pet.pet_effect.target = pet_data["effect"]["target"]
+            pet.pet_effect.status = pet_data["effect"]["status"]
+        elif pet_data["effect"]["kind"] in (
+            "discountFood",
+            "foodMultiplier",
+            "gainGold",
+        ):
+            # nothing specific to do, added for completeness
+            pass
+        elif pet_data["effect"]["kind"] == "refillShops":
+            pet.pet_effect.food = pet_data["effect"]["food"]
+        elif pet_data["effect"]["kind"] in ("oneOf", "allOf"):
+            pet.pet_effects = pet_data["effect"]["effects"]
+        else:
+            raise ValueError(f"Unknown pet effect: '{pet_data['effect']['kind']}'")
 
     def __eq__(self, __o: object) -> bool:
         return (
@@ -175,13 +279,13 @@ class Pet:
             and self.experience == __o.experience
             and self.health == __o.health
             and self.damage == __o.damage
-            and self.effect == __o.effect
+            and self.pet_effect == __o.pet_effect
             and self.held_food == __o.held_food
         )
 
     def __str__(self) -> str:
         return (
             f"Name: {self.name} - {self.health}/{self.damage} - {self.experience}xp"
-            f" (level {self.get_level()})\nTier: {self.tier} - effect: {self.effect} -"
-            f" food:{self.held_food}"
+            f" (level {self.get_level()}) Tier: {self.tier} -"
+            f" food:{self.held_food}\nEffect: {self.pet_effect}\n"
         )
