@@ -1,5 +1,6 @@
 from __future__ import annotations
 import random as rd
+import uuid
 
 from typing import List, Union
 
@@ -21,6 +22,7 @@ class Pet:
         experience: int = 1,
         held_food: Food | None = None,
     ) -> None:
+        self.id = uuid.uuid4().hex
         self.name = name
         self.damage = damage
         self.health = health
@@ -30,6 +32,15 @@ class Pet:
         self.experience = experience
         self.held_food = held_food
         self.pet_effects = pet_effects
+
+    @property
+    def id(self):
+        """The id property."""
+        return self._id
+
+    @id.setter
+    def id(self, value):
+        self._id = value
 
     @property
     def pet_effects(self):
@@ -130,21 +141,6 @@ class Pet:
             return self.experience // 3 + 1
         else:
             raise RuntimeError(f"Unexpected experience value ({self.experience}")
-
-    def combine_pets(self, other: Pet):
-        """
-        Checks if the two pets can be combined.
-        If so, combines them into the original one.
-        """
-        if other.name != self.name:
-            raise RuntimeError(
-                f"Cannot combine pets of different types ({self.name} and {other.name}"
-            )
-        if other.experience == 5 or self.experience == 5:
-            raise RuntimeError("Cannot combine pets with max experience")
-        self.health = max(self.health, other.health) + 1
-        self.damage = max(self.damage, other.damage) + 1
-        self.experience += other.experience
 
     def get_effect_values(self) -> Union[List[int], None]:
         """
@@ -279,8 +275,7 @@ class Pet:
             and self.experience == __o.experience
             and self.health == __o.health
             and self.damage == __o.damage
-            # TODO implement Effect __eq__
-            # and self.pet_effect == __o.pet_effect
+            and self.pet_effect == __o.pet_effect
             and self.held_food == __o.held_food
         )
 

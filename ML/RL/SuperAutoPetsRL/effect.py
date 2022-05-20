@@ -225,3 +225,8 @@ class Effect:
 
     def __str__(self) -> str:
         return str({k: v for k, v in self.__dict__.items() if v is not None})
+
+    def __eq__(self, __o: object) -> bool:
+        if not isinstance(__o, Effect):
+            return False
+        return self.__dict__ == __o.__dict__

@@ -11,15 +11,15 @@ Project to create a clone of [Super Auto Pets](https://teamwoodgames.com/), inte
     - [ ] Reroll shop/Geenrate new shop at start of round
       - [x] Generate random animals for the current turn (shop tier)
       - [ ] Generate random foods for the current turn (shop tier)
-    - [ ] Buy/sell/freeze a pet
+    - [x] Buy/sell/freeze a pet
       - [x] Freeze a pet
-      - [ ] Buy a pet
-      - [ ] Sell a pet
+      - [x] Buy a pet (Triggers not done yet)
+      - [x] Sell a pet (Triggers not done yet)
     - [ ] Buy/sell/freeze a food
       - [x] Freeze a food
       - [ ] Buy a food
       - [ ] Sell a food
-    - [ ] Combine/level up animals
+    - [x] Combine/level up animals
     - [ ] Apply the Start of Turn/Buy... triggers
   - [ ] Battle system
     - [ ] Apply the Start of Battle/Summon... triggers

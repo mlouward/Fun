@@ -8,7 +8,6 @@ from pet import Pet
 pet_tier_lookup: dict[int, List[str]] = {1: [], 2: [], 3: [], 4: [], 5: [], 6: []}
 for name, pet in data["pets"].items():
     pet_tier_lookup[pet["tier"]].append(name)
-print(pet_tier_lookup)
 del name, pet
 
 
@@ -16,19 +15,28 @@ class Shop:
     def __init__(
         self,
         turn=1,
-        tier=1,
         shop_attack=0,
         shop_health=0,
     ) -> None:
-        self.turn = turn
-        self.tier = tier
-        self.shop_attack = shop_attack
-        self.shop_health = shop_health
+        """
+        Initialize shop.
+            :param turn: turn of shop
+            :param shop_attack: bonus attack of all pets in shop
+            :param shop_health: bonus health of all pets in shop
+        """
+        if turn < 1:
+            raise ValueError("Turn must be greater than 0.")
+        self.tier = 1
+        self.turn = 1
         self.shop_size_pets = 3
         self.shop_size_foods = 1
-        self.shop_slots_pets = [None] * self.shop_size_pets
-        self.shop_slots_foods = [None] * self.shop_size_foods
+        self.shop_slots_pets = [None] * self.shop_size_pets  # Initial pets in shop
+        self.shop_slots_foods = [None] * self.shop_size_foods  # Initial foods in shop
         self.shop_slots_frozen = [False] * 7
+        for _ in range(1, turn):
+            self.increment_turn()
+        self.shop_attack = shop_attack
+        self.shop_health = shop_health
         self.generate_shop_pets()
 
     @property
@@ -135,10 +143,14 @@ class Shop:
             self.shop_size_foods = 3
             self.shop_slots_pets.append(None)
 
-    def get_random_pet(self) -> Union[Pet, None]:
+    def get_random_pet(self, is_level_up=False) -> Union[Pet, None]:
         """Get random pet from shop."""
+        # Get a pet from the current tier + 1
+        if is_level_up:
+            pet_tier = min(6, self.tier + 1)
         # Get random pet from tier inferior or equal to current shop tier
-        pet_tier = rd.randint(1, self.tier)
+        else:
+            pet_tier = rd.randint(1, self.tier)
         # Get random pet from tier
         pet_name = rd.choice(pet_tier_lookup[pet_tier])
         # Create pet
@@ -148,14 +160,6 @@ class Shop:
         new_pet.damage += self.shop_attack
         new_pet.health += self.shop_health
         return new_pet
-
-    def generate_shop_pet(self) -> Union[Pet, None]:
-        """Generate shop pet."""
-        # Get pet according to shop tier
-        pet = self.get_random_pet()
-        if not pet:
-            raise ValueError("Pet is None.")
-        return pet
 
     def toggle_freeze_slot(self, slot: int):
         """Toggle freeze/unfreeze slot.
@@ -176,7 +180,7 @@ class Shop:
         for i in range(self.shop_size_pets):
             # Check if the slot is not frozen before rerolling
             if not self.shop_slots_frozen[i]:
-                self.shop_slots_pets[i] = self.generate_shop_pet()
+                self.shop_slots_pets[i] = self.get_random_pet()
 
     def __str__(self) -> str:
         animals_str = ""
@@ -185,7 +189,7 @@ class Shop:
                 animals_str += f"- {pet}\n"
         return (
             f"Shop: Turn {self.turn}, {self.shop_size_pets} slots,"
-            f" {self.shop_attack} atk, {self.shop_health} hp, tier {self.tier}\n"
+            f" +{self.shop_attack} atk, +{self.shop_health} hp, tier {self.tier}\n"
             f" Animals:\n {animals_str}\n Foods: {self.shop_slots_foods}"
         )
 
