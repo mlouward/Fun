@@ -8,9 +8,9 @@ Project to create a clone of [Super Auto Pets](https://teamwoodgames.com/), inte
   - [x] Get the data for all animals
   - [x] Get the data for all foods, pets, statuses
   - [ ] Shop system
-    - [ ] Reroll shop/Generate new shop at start of round
+    - [x] Reroll shop/Generate new shop at start of round
       - [x] Generate random animals for the current turn (shop tier)
-      - [ ] Generate random foods for the current turn (shop tier)
+      - [x] Generate random foods for the current turn (shop tier)
     - [x] Buy/sell/freeze a pet
       - [x] Freeze a pet
       - [x] Buy a pet (Triggers not done yet)
@@ -18,13 +18,13 @@ Project to create a clone of [Super Auto Pets](https://teamwoodgames.com/), inte
     - [ ] Buy/sell/freeze a food
       - [x] Freeze a food
       - [ ] Buy a food
-      - [ ] Sell a food
     - [x] Combine/level up animals
     - [ ] Apply the Start of Turn/Buy... triggers
   - [ ] Battle system
     - [ ] Apply the Start of Battle/Summon... triggers
     - [ ] Run the attack sequence of the pets (+triggers)
     - [ ] Apply the health changes/round win changes at the end of the round
+  - [ ] Add testing ?
 
 - [ ] Implement RL algorithms using TensorFlow, study different algorithms and compare the results
   - [ ] Monte Carlo
