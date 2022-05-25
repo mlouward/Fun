@@ -26,3 +26,5 @@ class Trigger(Enum):
     EndOfTurn = 20
     BuyTier1Pet = 21
     CastsAbility = 22
+    WhenAttacking = 23
+    WhenDamaged = 24

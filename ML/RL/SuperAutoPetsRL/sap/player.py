@@ -1,9 +1,9 @@
 from __future__ import annotations
 
 from typing import List
-from xml.sax.handler import property_lexical_handler
 
 from pet import Pet
+from food import Food
 from shop import Shop
 
 
@@ -15,7 +15,8 @@ class Player:
         hp: int = 10,
         wins: int = 0,
         shop: Shop = Shop(),
-        board: List[Pet | None] = [None] * 5,
+        board_pets: List[Pet | None] = [None] * 5,
+        board_foods: List[Food | None] = [None] * 2,
     ) -> None:
         """
         Initialize player.
@@ -29,7 +30,8 @@ class Player:
         self.hp = hp
         self.wins = wins
         self.shop = shop
-        self.board = board
+        self.board_pets = board_pets
+        self.board_foods = board_foods
 
     @property
     def wins(self) -> int:
@@ -41,13 +43,22 @@ class Player:
         self._wins = value
 
     @property
-    def board(self) -> List[Pet | None]:
+    def board_pets(self) -> List[Pet | None]:
         """The board property."""
-        return self._board
+        return self._board_pets
 
-    @board.setter
-    def board(self, value: List[Pet | None]):
-        self._board = value
+    @board_pets.setter
+    def board_pets(self, value: List[Pet | None]):
+        self._board_pets = value
+
+    @property
+    def board_foods(self) -> List[Food | None]:
+        """The board property."""
+        return self._board_foods
+
+    @board_foods.setter
+    def board_foods(self, value: List[Food | None]):
+        self._board_foods = value
 
     @property
     def hp(self):
@@ -95,11 +106,11 @@ class Player:
         # Add pet to player's board
         if self.money >= pet.cost:
             # Insert it to the first "None" slot if there is ons
-            if not all(self.board):
-                self.board[self.board.index(None)] = pet
+            if not all(self.board_pets):
+                self.board_pets[self.board_pets.index(None)] = pet
             # otherwise, if there is a pet with the same name, combine them
-            elif any([pet.name == p.name for p in self.board if p is not None]):
-                for p in self.board:
+            elif any([pet.name == p.name for p in self.board_pets if p is not None]):
+                for p in self.board_pets:
                     if p is not None and p.name == pet.name:
                         self.combine_pets(p, pet, from_shop=True)
                         break
@@ -119,10 +130,10 @@ class Player:
             :param pet_index: index of the pet to sell
         """
         # TODO: Activate triggers
-        pet = self.board[pet_index]
+        pet = self.board_pets[pet_index]
         if pet is not None:
             self.money += pet.get_level()
-            self.board[pet_index] = None
+            self.board_pets[pet_index] = None
 
     def combine_pets(
         self, original: Pet | None, other: Pet | None, from_shop=False
@@ -167,12 +178,13 @@ class Player:
         else:
             # Find index of 'other' pet on the board
             board_pet = next(
-                (other for p in self.board if p is not None and other.id == p.id), None
+                (other for p in self.board_pets if p is not None and other.id == p.id),
+                None,
             )
             if not board_pet:
                 return False
             # remove 'other' pet from board
-            self.board[self.board.index(board_pet)] = None
+            self.board_pets[self.board_pets.index(board_pet)] = None
 
         # Update stats, spawn new pet if level up
         # TODO: trigger level up
@@ -199,16 +211,45 @@ class Player:
             :param pet_index: index of the first pet
             :param pet_index_2: index of the second pet
         """
-        self.board[pet_index], self.board[pet_index_2] = (
-            self.board[pet_index_2],
-            self.board[pet_index],
+        self.board_pets[pet_index], self.board_pets[pet_index_2] = (
+            self.board_pets[pet_index_2],
+            self.board_pets[pet_index],
         )
 
+    def buy_food(
+        self, food: Food, shop_slot: int, target_pet: Pet | None = None
+    ) -> None:
+        """
+        Buy a food.
+            :param Food food: food to buy
+            :param int shop_slot: slot of the food in the shop
+            :param Pet | None target_pet: pet of the board to feed if applicable
+        """
+        # Add pet to player's board
+        if self.money >= food.cost:
+            # Foods that apply to a pet
+            if target_pet:
+                Pet.apply_food_effect(target_pet, food)
+            else:
+                Shop.apply_food_effect(self.shop, food)
+            # Foods that apply to the game/board...
+            self.money -= food.cost
+            # Remove from shop and unfreeze the slot
+            self.shop.shop_slots_foods[shop_slot] = None
+            self.shop.shop_slots_frozen[shop_slot] = False
+        else:
+            raise ValueError("Not enough money")
+
     def __str__(self) -> str:
-        board = ""
-        for pet in self.board:
-            if pet is None:
+        board = "|"
+        for pet in self.board_pets:
+            if not pet:
                 board += "x|"
             else:
                 board += f"{pet.name}|"
+        for food in self.shop.shop_slots_foods:
+            if food:
+                board += f"{food.food_name}|"
+            else:
+                board += "x|"
         return f"{self.name} ; {self.money}golds ; {self.hp}/10hp.\n{board}"

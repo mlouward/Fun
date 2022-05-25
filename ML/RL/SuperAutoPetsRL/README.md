@@ -6,9 +6,9 @@ Project to create a clone of [Super Auto Pets](https://teamwoodgames.com/), inte
 
 - [x] Create the game mechanics, including the shop, the battle system, the player actions
   - [x] Get the data for all animals
-  - [ ] Get the data for all foods
+  - [x] Get the data for all foods, pets, statuses
   - [ ] Shop system
-    - [ ] Reroll shop/Geenrate new shop at start of round
+    - [ ] Reroll shop/Generate new shop at start of round
       - [x] Generate random animals for the current turn (shop tier)
       - [ ] Generate random foods for the current turn (shop tier)
     - [x] Buy/sell/freeze a pet

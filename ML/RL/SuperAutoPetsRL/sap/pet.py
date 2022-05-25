@@ -1,11 +1,10 @@
 from __future__ import annotations
-import random as rd
+
 import uuid
+from typing import List
 
-from typing import List, Union
-
-from data import data
 import effect
+from data import data
 from food import Food
 
 
@@ -17,10 +16,10 @@ class Pet:
         health: int,
         tier: int,
         pet_effect: effect.Effect = effect.Effect(),
-        pet_effects: Union[List[effect.Effect], None] = None,
+        pet_effects: List[effect.Effect] | None = None,
         cost: int = 3,
         experience: int = 1,
-        held_food: Food | None = None,
+        held_status: str | None = None,
     ) -> None:
         self.id = uuid.uuid4().hex
         self.name = name
@@ -30,7 +29,7 @@ class Pet:
         self.pet_effect = pet_effect
         self.cost = cost
         self.experience = experience
-        self.held_food = held_food
+        self.held_status = held_status
         self.pet_effects = pet_effects
 
     @property
@@ -101,15 +100,15 @@ class Pet:
         self._effect = value
 
     @property
-    def held_food(self) -> Food | None:
-        """The held_food property."""
-        return self._held_food
+    def held_status(self) -> str | None:
+        """The held_status property."""
+        return self._held_status
 
-    @held_food.setter
-    def held_food(self, value: Food | None):
-        if not isinstance(value, Food) and value is not None:
-            raise TypeError(f"Food must be of type Food or None, got {type(value)}")
-        self._held_food = value
+    @held_status.setter
+    def held_status(self, value: str | None):
+        # if not isinstance(value, Food) and value is not None:
+        #     raise TypeError(f"Food must be of type Food or None, got {type(value)}")
+        self._held_status = value
 
     @property
     def cost(self) -> int:
@@ -142,7 +141,7 @@ class Pet:
         else:
             raise RuntimeError(f"Unexpected experience value ({self.experience}")
 
-    def get_effect_values(self) -> Union[List[int], None]:
+    def get_effect_values(self) -> List[int] | None:
         """
         Returns the effect values of the pet given its level
         """
@@ -169,7 +168,7 @@ class Pet:
         raise RuntimeError(f"Unrecognized pet: '{self.name}'")
 
     @staticmethod
-    def create_pet(pet_name: str) -> Union[Pet, None]:
+    def create_pet(pet_name: str) -> Pet | None:
         """
         Initializes a pet with its stats and effect.
 
@@ -194,9 +193,7 @@ class Pet:
                 # Can be None if does not scale with level
                 pet_data["parameters"] if "parameters" in pet_data else None,
             ),
-            held_food=Food.create_food(pet_data["heldFood"])
-            if "heldFood" in pet_data
-            else None,
+            held_status=pet_data["heldStatus"] if "heldStatus" in pet_data else None,
         )
 
         # TODO move to "on_trigger"
@@ -267,21 +264,20 @@ class Pet:
         else:
             raise ValueError(f"Unknown pet effect: '{pet_data['effect']['kind']}'")
 
+    def apply_food_effect(self, food: Food) -> None:
+        """
+        Applies the food effect to the pet.
+
+            :param Food food: The food to apply
+        """
+        pass
+
     def __eq__(self, __o: object) -> bool:
-        return (
-            isinstance(__o, Pet)
-            and self.name == __o.name
-            and self.tier == __o.tier
-            and self.experience == __o.experience
-            and self.health == __o.health
-            and self.damage == __o.damage
-            and self.pet_effect == __o.pet_effect
-            and self.held_food == __o.held_food
-        )
+        return isinstance(__o, Pet) and self.__dict__ == __o.__dict__
 
     def __str__(self) -> str:
         return (
             f"Name: {self.name} - {self.damage}/{self.health} - {self.experience}xp"
             f" (level {self.get_level()}) Tier: {self.tier} -"
-            f" food:{self.held_food}\nEffect: {self.pet_effect}\n"
+            f" food:{self.held_status}\nEffect: {self.pet_effect}\n"
         )

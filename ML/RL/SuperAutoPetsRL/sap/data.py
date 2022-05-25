@@ -427,7 +427,7 @@ data = {
                 "effects": [
                     {
                         "kind": "applyStatus",
-                        "status": "melon-armor",
+                        "status": "melon_armor",
                         "target": {"kind": "self"},
                     },
                     {
@@ -502,7 +502,7 @@ data = {
             },
             "effect": {
                 "kind": "applyStatus",
-                "status": "melon-armor",
+                "status": "melon_armor",
                 "target": {"kind": "friendBehind", "n": 1},
             },
         },
@@ -778,7 +778,7 @@ data = {
                 "trigger": Trigger.Summoned,
                 "triggeredBy": "self",
             },
-            "heldFood": "peanuts",
+            "heldStatus": "poison_attack",
         },
         "seal": {
             "tier": 5,
@@ -984,5 +984,358 @@ data = {
                 "parameters": [1],
             },
         },
-    }
+        "zombie_cricket": {
+            "tier": -1,
+            "baseAttack": -1,
+            "baseHealth": -1,
+        },
+        "dirty_rat": {
+            "tier": -1,
+            "baseAttack": 1,
+            "baseHealth": 1,
+        },
+        "bus": {
+            "tier": -1,
+            "baseAttack": -1,
+            "baseHealth": -1,
+            "status": "splash_attack",
+        },
+        "zombie_fly": {
+            "tier": -1,
+            "baseAttack": -1,
+            "baseHealth": -1,
+        },
+        "ram": {
+            "tier": -1,
+            "baseAttack": -1,
+            "baseHealth": -1,
+        },
+        "chick": {
+            "tier": -1,
+            "baseAttack": -1,
+            "baseHealth": 1,
+        },
+        "bee": {
+            "tier": -1,
+            "baseAttack": -1,
+            "baseHealth": 1,
+        },
+    },
+    "foods": {
+        "apple": {
+            "tier": 1,
+            "ability": {
+                "description": "Give an animal +1/+1.",
+                "triggeredBy": {"kind": "self"},
+                "trigger": Trigger.BuyFood,
+                "effect": {
+                    "kind": "modifyStats",
+                    "target": {"kind": "purchaseTarget"},
+                    "parameters": [1, 1],
+                    "untilEndOfBattle": False,
+                },
+            },
+        },
+        "honey": {
+            "tier": 1,
+            "ability": {
+                "description": "Give an animal Honey Bee.",
+                "triggeredBy": {"kind": "self"},
+                "trigger": Trigger.BuyFood,
+                "effect": {
+                    "kind": "applyStatus",
+                    "to": {"kind": "purchaseTarget"},
+                    "status": "honey_bee",
+                },
+            },
+        },
+        "cupcake": {
+            "tier": 2,
+            "ability": {
+                "description": "Give an animal +3/+3 until end of battle.",
+                "triggeredBy": {"kind": "self"},
+                "trigger": Trigger.BuyFood,
+                "effect": {
+                    "kind": "modifyStats",
+                    "target": {"kind": "purchaseTarget"},
+                    "parameters": [3, 3],
+                    "untilEndOfBattle": True,
+                },
+            },
+        },
+        "meat": {
+            "tier": 2,
+            "ability": {
+                "description": "Give an animal Bone Attack.",
+                "triggeredBy": {"kind": "self"},
+                "trigger": Trigger.BuyFood,
+                "effect": {
+                    "kind": "applyStatus",
+                    "to": {"kind": "purchaseTarget"},
+                    "status": "bone_attack",
+                },
+            },
+        },
+        "pill": {
+            "tier": 2,
+            "cost": 1,
+            "ability": {
+                "description": "Make a friendly animal faint.",
+                "triggeredBy": {"kind": "self"},
+                "trigger": Trigger.BuyFood,
+                "effect": {"kind": "faint", "target": {"kind": "purchaseTarget"}},
+            },
+        },
+        "garlic": {
+            "tier": 3,
+            "ability": {
+                "description": "Give an animal garlic armor.",
+                "triggeredBy": {"kind": "self"},
+                "trigger": Trigger.BuyFood,
+                "effect": {
+                    "kind": "applyStatus",
+                    "to": {"kind": "purchaseTarget"},
+                    "status": "garlic_armor",
+                },
+            },
+        },
+        "salad": {
+            "tier": 3,
+            "ability": {
+                "description": "Give 2 random animals +1/+1.",
+                "triggeredBy": {"kind": "self"},
+                "trigger": Trigger.BuyFood,
+                "effect": {
+                    "kind": "modifyStats",
+                    "target": {"kind": "randomFriend", "n": 2},
+                    "parameters": [1, 1],
+                    "untilEndOfBattle": False,
+                },
+            },
+        },
+        "canned-food": {
+            "tier": 4,
+            "ability": {
+                "description": "Give all current and future shop animals +2/+1.",
+                "triggeredBy": {"kind": "self"},
+                "trigger": Trigger.BuyFood,
+                "effect": {
+                    "kind": "modifyStats",
+                    "target": {"kind": "eachShopAnimal", "includingFuture": True},
+                    "parameters": [2, 1],
+                    "untilEndOfBattle": False,
+                },
+            },
+        },
+        "pear": {
+            "tier": 4,
+            "ability": {
+                "description": "Give an animal +2/+2.",
+                "triggeredBy": {"kind": "self"},
+                "trigger": Trigger.BuyFood,
+                "effect": {
+                    "kind": "modifyStats",
+                    "target": {"kind": "purchaseTarget"},
+                    "parameters": [2, 2],
+                    "untilEndOfBattle": False,
+                },
+            },
+        },
+        "chocolate": {
+            "tier": 5,
+            "ability": {
+                "description": "Give an animal +1xp.",
+                "triggeredBy": {"kind": "self"},
+                "trigger": Trigger.BuyFood,
+                "effect": {
+                    "kind": "gainExperience",
+                    "target": {"kind": "purchaseTarget"},
+                    "parameters": [1],
+                },
+            },
+        },
+        "sushi": {
+            "tier": 5,
+            "ability": {
+                "description": "Give 3 random animals +1/+1.",
+                "triggeredBy": {"kind": "self"},
+                "trigger": Trigger.BuyFood,
+                "effect": {
+                    "kind": "modifyStats",
+                    "target": {"kind": "randomFriend", "n": 3},
+                    "parameters": [1, 1],
+                    "untilEndOfBattle": False,
+                },
+            },
+        },
+        "melon": {
+            "tier": 5,
+            "ability": {
+                "description": "Give an animal melon armor.",
+                "triggeredBy": {"kind": "self"},
+                "trigger": Trigger.BuyFood,
+                "effect": {
+                    "kind": "applyStatus",
+                    "to": {"kind": "purchaseTarget"},
+                    "status": "melon_armor",
+                },
+            },
+        },
+        "mushroom": {
+            "tier": 6,
+            "ability": {
+                "description": "Give an animal extra life.",
+                "triggeredBy": {"kind": "self"},
+                "trigger": Trigger.BuyFood,
+                "effect": {
+                    "kind": "applyStatus",
+                    "to": {"kind": "purchaseTarget"},
+                    "status": "extra_life",
+                },
+            },
+        },
+        "pizza": {
+            "tier": 6,
+            "ability": {
+                "description": "Give 2 random animals +2/+2.",
+                "triggeredBy": {"kind": "self"},
+                "trigger": Trigger.BuyFood,
+                "effect": {
+                    "kind": "modifyStats",
+                    "target": {"kind": "randomFriend", "n": 2},
+                    "parameters": [2, 2],
+                    "untilEndOfBattle": False,
+                },
+            },
+        },
+        "steak": {
+            "tier": 6,
+            "ability": {
+                "description": "Give an animal steak attack.",
+                "triggeredBy": {"kind": "self"},
+                "trigger": Trigger.BuyFood,
+                "effect": {
+                    "kind": "applyStatus",
+                    "to": {"kind": "purchaseTarget"},
+                    "status": "steak_attack",
+                },
+            },
+        },
+        "milk": {
+            "tier": -1,
+            "cost": 0,
+            "ability": {
+                "description": (
+                    "Give an animal +1/2/3 attack and +2/4/6 health"
+                    "(depending on level of Cow)."
+                ),
+                "triggeredBy": {"kind": "self"},
+                "trigger": Trigger.BuyFood,
+                "effect": {
+                    "kind": "modifyStats",
+                    "target": {"kind": "purchaseTarget"},
+                    "parameters": [1, 2],
+                    "untilEndOfBattle": False,
+                },
+            },
+        },
+    },
+    "statuses": {
+        "coconut_shield": {
+            "ability": {
+                "description": "Ignore damage once.",
+                "triggeredBy": {"kind": "self"},
+                "trigger": Trigger.WhenDamaged,
+                "effect": {
+                    "kind": "modifyDamage",
+                    "damageModifier": None,
+                    "appliesOnce": True,
+                },
+            }
+        },
+        "honey_bee": {
+            "ability": {
+                "description": "Summon a 1/1 Bee after fainting.",
+                "triggeredBy": {"kind": "self"},
+                "trigger": Trigger.Faint,
+                "effect": {"kind": "summonPet", "pet": "pet-bee", "team": "friendly"},
+            }
+        },
+        "bone_attack": {
+            "ability": {
+                "description": "Attack for 5 more damage.",
+                "triggeredBy": {"kind": "self"},
+                "trigger": Trigger.WhenAttacking,
+                "effect": {
+                    "kind": "modifyDamage",
+                    "damageModifier": 5,
+                    "appliesOnce": False,
+                },
+            }
+        },
+        "garlic_armor": {
+            "ability": {
+                "description": "Take 2 less damage.",
+                "triggeredBy": {"kind": "self"},
+                "trigger": Trigger.WhenDamaged,
+                "effect": {
+                    "kind": "modifyDamage",
+                    "damageModifier": -2,
+                    "appliesOnce": False,
+                },
+            }
+        },
+        "splash_attack": {
+            "ability": {
+                "description": "Attack second enemy for 5 damage.",
+                "triggeredBy": {"kind": "self"},
+                "trigger": Trigger.WhenAttacking,
+                "effect": {"kind": "splashDamage", "amount": 5},
+            }
+        },
+        "melon_armor": {
+            "ability": {
+                "description": "Take 20 damage less, once.",
+                "triggeredBy": {"kind": "self"},
+                "trigger": Trigger.WhenDamaged,
+                "effect": {
+                    "kind": "modifyDamage",
+                    "damageModifier": -20,
+                    "appliesOnce": True,
+                },
+            }
+        },
+        "extra_life": {
+            "ability": {
+                "description": "Come back as a 1/1 after fainting",
+                "triggeredBy": {"kind": "self"},
+                "trigger": Trigger.Faint,
+                "effect": {"kind": "respawnPet", "baseAttack": 1, "baseHealth": 1},
+            }
+        },
+        "steak_attack": {
+            "ability": {
+                "description": "Attack for 20 more damage, once.",
+                "triggeredBy": {"kind": "self"},
+                "trigger": Trigger.WhenAttacking,
+                "effect": {
+                    "kind": "modifyDamage",
+                    "damageModifier": 20,
+                    "appliesOnce": True,
+                },
+            }
+        },
+        "poison_attack": {
+            "ability": {
+                "description": "Knock out any animal hit by this.",
+                "triggeredBy": {"kind": "self"},
+                "trigger": Trigger.WhenAttacking,
+                "effect": {
+                    "kind": "modifyDamage",
+                    "damageModifier": None,
+                    "appliesOnce": False,
+                },
+            }
+        },
+    },
 }
