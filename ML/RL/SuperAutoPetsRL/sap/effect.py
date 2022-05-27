@@ -216,12 +216,12 @@ class Effect:
         self._n = value
 
     @property
-    def max_triggers(self):
+    def max_triggers(self) -> int | None:
         """The max_triggers property."""
         return self._max_triggers
 
     @max_triggers.setter
-    def max_triggers(self, value):
+    def max_triggers(self, value: int | None):
         self._max_triggers = value
 
     def __str__(self) -> str:

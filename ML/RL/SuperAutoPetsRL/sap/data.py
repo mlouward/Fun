@@ -112,7 +112,7 @@ data = {
             },
             "effect": {
                 "kind": "dealDamage",
-                "parameters": [1],
+                "damage": 1,
                 "target": {"kind": "randomEnemy", "n": 1},
             },
         },
@@ -189,7 +189,7 @@ data = {
             },
             "effect": {
                 "kind": "dealDamage",
-                "parameters": [1],  # amount of dmg
+                "damage": 1,  # amount of dmg
                 "target": {"kind": "friendBehind", "n": 1},
             },
         },

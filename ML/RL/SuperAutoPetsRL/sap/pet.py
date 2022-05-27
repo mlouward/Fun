@@ -141,12 +141,10 @@ class Pet:
         else:
             raise RuntimeError(f"Unexpected experience value ({self.experience}")
 
-    def get_effect_values(self) -> List[int] | None:
+    def get_effect_values(self) -> List[int] | int | None:
         """
         Returns the effect values of the pet given its level
         """
-        if not self.pet_effect:
-            raise RuntimeError("Pet has no effect")
         if self.name.lower() in {
             "mosquito",
             "elephant",
@@ -154,21 +152,25 @@ class Pet:
             "turtle",
             "crocodile",
         }:
-            self.pet_effect.target.n *= self.get_level()
+            self.pet_effect.target["n"] = self.get_level()
             return self.pet_effect.parameters
         elif self.name.lower() == "rat":
-            self.pet_effect.n *= self.get_level()
+            self.pet_effect.n = self.get_level()
             return self.pet_effect.parameters
         elif self.name.lower() == "cat":
             return [1 + self.get_level()]
         elif self.name.lower() == "gorilla":
-            return self.pet_effect.max_triggers * self.get_level()
+            self.pet_effect.max_triggers = self.get_level()
+            return
         if self.pet_effect.parameters:
             return self.pet_effect.parameters * self.get_level()
+        # No effect
+        if self.name.lower() == "scorpion":
+            return
         raise RuntimeError(f"Unrecognized pet: '{self.name}'")
 
     @staticmethod
-    def create_pet(pet_name: str) -> Pet | None:
+    def create_pet(pet_name: str) -> Pet:
         """
         Initializes a pet with its stats and effect.
 
@@ -191,23 +193,19 @@ class Pet:
                 pet_data["ability"]["triggeredBy"],
                 pet_data["ability"]["description"],
                 # Can be None if does not scale with level
-                pet_data["parameters"] if "parameters" in pet_data else None,
+                pet_data["effect"]["parameters"]
+                if "effect" in pet_data and "parameters" in pet_data["effect"]
+                else None,
             ),
             held_status=pet_data["heldStatus"] if "heldStatus" in pet_data else None,
         )
 
-        # TODO move to "on_trigger"
-        # # handle multiple effect options (ox, dog, ...)
-        # if pet_data["effect"]["kind"] == "oneOf":
-        #     chosen_effect = {"effect": rd.choice(pet_data["effect"]["effects"])}
-        #     Pet.__set_effect_data(pet, chosen_effect)
-        # elif pet_data["effect"]["kind"] == "allOf":
-        #     for unique_effect in pet_data["effect"]["effects"]:
-        #         Pet.__set_effect_data(pet, unique_effect)
-
         # handle no effect (scorpion)
         if "effect" not in pet_data:
             return pet
+        # handle multiple effect options (ox, dog, ...)
+        elif pet_data["effect"]["kind"] in ("oneOf", "allOf"):
+            Pet.__set_effect_data(pet, pet_data)
         else:
             # "Normal" animal effect to set
             Pet.__set_effect_data(pet, pet_data)
@@ -279,5 +277,6 @@ class Pet:
         return (
             f"Name: {self.name} - {self.damage}/{self.health} - {self.experience}xp"
             f" (level {self.get_level()}) Tier: {self.tier} -"
-            f" food:{self.held_status}\nEffect: {self.pet_effect}\n"
+            f" food:{self.held_status}\nEffect:"
+            f" {self.pet_effect} \n\t=>{self.pet_effects if self.pet_effects else ''}\n"
         )
