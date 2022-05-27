@@ -1,15 +1,12 @@
-﻿using System;
-using System.Diagnostics;
-
-namespace MCTS
+﻿namespace MCTS
 {
     internal class Program
     {
         private static void PlayVsAI(int duration)
         {
-            Board b = new Board();
+            Board b = new();
             b.PrintBoard();
-            int player = Board.P1;
+            int player = Board.P2;
             int res;
 
             while (true)
@@ -24,9 +21,14 @@ namespace MCTS
                     break;
 
                 // Human
-                Console.WriteLine($"Entrez une position valide entre 1 et {Board.DEFAULT_BOARD_LENGTH}:");
-                int joueur = int.Parse(Console.ReadLine()) - 1;
-                Position j = new Position(joueur);
+                string input;
+                int joueur;
+                do
+                {
+                    Console.WriteLine($"Entrez une position valide entre 1 et {Board.DEFAULT_BOARD_LENGTH}:");
+                    input = Console.ReadLine().Trim().Substring(0, 1);
+                } while (!int.TryParse(input, out joueur));
+                Position j = new(joueur - 1);
                 b.PerformMove(player, j);
                 b.PrintBoard();
                 res = b.CheckStatus();
@@ -93,8 +95,8 @@ namespace MCTS
 
         private static void Main(string[] args)
         {
-            PlaySelf(10);
-            //PlayVsAI(20);
+            //PlaySelf(10);
+            PlayVsAI(4);
             Console.ReadKey();
         }
     }

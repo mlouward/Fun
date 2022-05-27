@@ -7,7 +7,7 @@ namespace MCTS
     public class Node
     {
         public State State { get; set; }
-        public Node Parent { get; set; }
+        public Node? Parent { get; set; }
         public List<Node> ChildrenList { get; set; }
 
         public Node()
@@ -57,7 +57,7 @@ namespace MCTS
             return ChildrenList.Aggregate((x, y) => HeuristicValue(x) > HeuristicValue(y) ? x : y);
         }
 
-        private int HeuristicValue(Node n)
+        private static int HeuristicValue(Node n)
         {
             int boardSize = Board.DEFAULT_BOARD_LENGTH;
             int maxIndex = boardSize - 1;
