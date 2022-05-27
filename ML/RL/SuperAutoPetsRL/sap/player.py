@@ -1,10 +1,11 @@
 from __future__ import annotations
 
-from typing import List
+from typing import List, TYPE_CHECKING
 
-from pet import Pet
-from food import Food
-from shop import Shop
+if TYPE_CHECKING:
+    from .food import Food
+from .pet import Pet
+from .shop import Shop
 
 
 class Player:

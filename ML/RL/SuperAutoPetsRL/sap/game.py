@@ -1,7 +1,7 @@
-from player import Player
-from shop import food_tier_lookup, pet_tier_lookup
-from pet import Pet
-from food import Food
+from .player import Player
+from .shop import food_tier_lookup, pet_tier_lookup
+from .pet import Pet
+from .food import Food
 
 
 def generate_all_pets():

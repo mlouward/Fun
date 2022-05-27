@@ -1,14 +1,14 @@
 from __future__ import annotations
 
-import effect
-from data import data
+from .effect import Effect
+from .data import data
 
 
 class Food:
     def __init__(
         self,
         food_name: str | None = None,
-        ability: effect.Effect | None = None,
+        ability: Effect | None = None,
         cost: int = 3,
     ) -> None:
         self.food_name = food_name
@@ -34,12 +34,12 @@ class Food:
         self._tier = value
 
     @property
-    def ability(self) -> effect.Effect | None:
+    def ability(self) -> Effect | None:
         """The ability property."""
         return self._ability
 
     @ability.setter
-    def ability(self, value: effect.Effect | None):
+    def ability(self, value: Effect | None):
         self._ability = value
 
     @property
@@ -68,7 +68,7 @@ class Food:
         food = Food(
             food_name=food_name.lower(),
             cost=food_data["cost"] if "cost" in food_data else 3,
-            ability=effect.Effect(
+            ability=Effect(
                 trigger=food_data["ability"]["trigger"],
                 triggered_by=food_data["ability"]["triggeredBy"],
                 kind=effect_kind,

@@ -3,9 +3,9 @@ from __future__ import annotations
 import random as rd
 from typing import List
 
-from data import data
-from food import Food
-from pet import Pet
+from .data import data
+from .food import Food
+from .pet import Pet
 
 # Build dict of tiers to list of available pets
 pet_tier_lookup: dict[int, List[str]] = {1: [], 2: [], 3: [], 4: [], 5: [], 6: []}

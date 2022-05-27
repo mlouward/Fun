@@ -1,4 +1,4 @@
-from triggers import Trigger
+from .triggers import Trigger
 
 data = {
     "pets": {

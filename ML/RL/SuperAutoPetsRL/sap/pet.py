@@ -3,9 +3,9 @@ from __future__ import annotations
 import uuid
 from typing import List
 
-import effect
-from data import data
-from food import Food
+from .effect import Effect
+from .data import data
+from .food import Food
 
 
 class Pet:
@@ -15,8 +15,8 @@ class Pet:
         damage: int,
         health: int,
         tier: int,
-        pet_effect: effect.Effect = effect.Effect(),
-        pet_effects: List[effect.Effect] | None = None,
+        pet_effect: Effect = Effect(),
+        pet_effects: List[Effect] | None = None,
         cost: int = 3,
         experience: int = 1,
         held_status: str | None = None,
@@ -89,13 +89,13 @@ class Pet:
         self._tier = value
 
     @property
-    def pet_effect(self) -> effect.Effect:
+    def pet_effect(self) -> Effect:
         """The effect property."""
         return self._effect
 
     @pet_effect.setter
-    def pet_effect(self, value: effect.Effect):
-        if not isinstance(value, effect.Effect):
+    def pet_effect(self, value: Effect):
+        if not isinstance(value, Effect):
             raise TypeError(f"Effect must be of type Effect, got {type(value)}")
         self._effect = value
 
@@ -186,7 +186,7 @@ class Pet:
             pet_data["baseAttack"],
             pet_data["baseHealth"],
             pet_data["tier"],
-            effect.Effect(
+            Effect(
                 pet_data["ability"]["trigger"],
                 pet_data["ability"]["triggeredBy"],
                 pet_data["ability"]["description"],

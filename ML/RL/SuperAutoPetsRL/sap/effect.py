@@ -1,10 +1,11 @@
 from __future__ import annotations
 
-from typing import List, Set
+from typing import List, Set, TYPE_CHECKING
 
-import pet
-from food import Food
-from triggers import Trigger
+if TYPE_CHECKING:
+    from .pet import Pet
+    from .food import Food
+    from .triggers import Trigger
 
 
 class Effect:
@@ -23,7 +24,7 @@ class Effect:
         to_pet: dict[str, str] | None = None,
         n: int | List[int] | None = None,
         max_triggers: int | None = None,
-        affected_pet: pet.Pet | None = None,
+        affected_pet: Pet | None = None,
         team: str | None = None,
         tier: int | None = None,
         attack: int | None = None,
@@ -134,12 +135,12 @@ class Effect:
         self._team = value
 
     @property
-    def affected_pet(self) -> pet.Pet | None:
+    def affected_pet(self) -> Pet | None:
         """The pet property."""
         return self._pet
 
     @affected_pet.setter
-    def affected_pet(self, value: pet.Pet | None):
+    def affected_pet(self, value: Pet | None):
         self._pet = value
 
     @property
