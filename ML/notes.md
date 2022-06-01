@@ -18,6 +18,10 @@
       - [Bagging vs Boosting](#bagging-vs-boosting)
 - [Generative vs Discriminative](#generative-vs-discriminative)
 - [SVM and Logistic Regression](#svm-and-logistic-regression)
+- [Classification](#classification)
+  - [ROC/Precision Recall curves](#rocprecision-recall-curves)
+    - [ROC](#roc)
+    - [Precision-Recall](#precision-recall)
 - [Basic fully-connected Neural network using NumPy](#basic-fully-connected-neural-network-using-numpy)
 
 <!-- /code_chunk_output -->
@@ -158,6 +162,32 @@ An SVM tries to find the separating hyperplane that maximizes the distance of th
 SVM can use nonlinear kernels if data can't be split linearly. Gaussian RBF kernel is a good choice in practice.
 
 We can express [SVM as a derivation of LR](http://www.cs.toronto.edu/~kswersky/wp-content/uploads/svm_vs_lr.pdf#page=7).
+
+## Classification
+
+### ROC/Precision Recall curves
+
+Both ROC and precision-recall curves are used to evaluate the performance of a classifier. Usually binary, but can work with multiclass.
+
+#### ROC
+
+Used for binary classification where classes are **balanced**.
+Y-axis = **true positive** rate (sensitivity)
+X-axis = **false positive** rate (1 - specificity)
+**AUC** = summary of the model's skill.
+Can be compared between different models.
+Useful to choose a **threshold** specific to the use case.
+Perfect skill = point in (0, 1)
+
+#### Precision-Recall
+
+Used when a **lot of 0 and few ones** (imbalance), because then we are less interested in false negatives
+**Precision** = True Positives / (True Positives + False Positives) (Positive Predictive Value)
+**Recall** = True Positives / (True Positives + False Negatives) (Sensitivity)
+Perfect skill = point in (1, 1)
+Can also use AUC here, and **F1-score** to summarize precision and recall together.
+
+ROC can be **overly optimistic** when classes are imbalanced $\Rightarrow$ Precision recall curve are more appropriate.
 
 ## Basic fully-connected Neural network using NumPy
 
