@@ -1,6 +1,4 @@
-﻿using System;
-
-namespace MCTS
+﻿namespace MCTS
 {
     public class MCTS
     {
@@ -100,7 +98,8 @@ namespace MCTS
             }
             if (boardStatus == tempState.GetOpponent()) // If we lose, return opponent and store winscore as minvalue.
             {
-                tempNode.Parent.State.WinScore = int.MinValue;
+                if (tempNode.Parent != null)
+                    tempNode.Parent.State.WinScore = int.MinValue;
                 return boardStatus;
             }
             return boardStatus; // else, return 0 (draw) or P1/P2
@@ -113,7 +112,7 @@ namespace MCTS
         /// <param name="playoutResult"> Final result for starting node </param>
         public static void BackPropagation(Node nodeToExplore, int playoutResult)
         {
-            Node tempNode = nodeToExplore;
+            Node? tempNode = nodeToExplore;
             while (tempNode != null)
             {
                 ExploredNodes++; //?

@@ -1,7 +1,4 @@
-﻿using System;
-using System.Linq;
-
-namespace MCTS
+﻿namespace MCTS
 {
     public class UCT
     {
