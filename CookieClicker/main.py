@@ -1,15 +1,30 @@
 from __future__ import annotations
 
+import json
 from argparse import ArgumentParser
 from typing import Dict, List, Tuple
 
-from powerups import data
+
+def load_data() -> Dict[str, Dict[str, float]]:
+    """
+    Loads the data from the JSON file.
+    """
+    with open("powerups.json") as f:
+        return json.load(f)
+
+
+def write_data_level(upgrade_name: str):
+    data = load_data()
+    data[upgrade_name]["levels"] += 1
+    with open("powerups.json", "w") as f:
+        json.dump(data, f, indent=4)
 
 
 def autoclicks_formula(final_level: int):
     """
     Returns the cost to upgrade to final_level.
     """
+    data = load_data()
     return 1.3 ** (final_level - 1) * data["AutoClick"]["base_cost"]
 
 
@@ -17,6 +32,7 @@ def powerups_formula(final_level: int, powerup_name: str):
     """
     Returns the cost to upgrade to final_level.
     """
+    data = load_data()
     return 1.4 ** (final_level - 1) * data[powerup_name]["base_cost"]
 
 
@@ -29,6 +45,7 @@ def one_upgrade(verbose: int = 2) -> Tuple[str, float]:
              1: print the best upgrade only,
              2: print all upgrades and their value
     """
+    data = load_data()
     best_cost = float("inf")
     best_key = ""
     # When 2 powerups in a row are zero level, we can't access them
@@ -37,15 +54,14 @@ def one_upgrade(verbose: int = 2) -> Tuple[str, float]:
         print(f"| {'name':20} | {'cps_cost':20} |")
     # Go through all powerups
     for upgrade_name in data.keys():
-        if zero_level_tracker == 2:
+        if zero_level_tracker == 1:
             # When 2 powerups in a row are zero level, we can't access them
             # Debug mode only (>2)
             if verbose > 2:
-                print("You can't afford more powerups.")
+                print(f"You can't afford more powerups ({upgrade_name})")
             break
         if data[upgrade_name]["levels"] == 0:
             zero_level_tracker += 1
-            continue
         # Compute the cost of the upgrade
         upgrade_cost = powerups_formula(data[upgrade_name]["levels"] + 1, upgrade_name)
         # Compute ration between cost and gained CPS
@@ -62,6 +78,7 @@ def one_upgrade(verbose: int = 2) -> Tuple[str, float]:
 
 
 def chain_upgrades(n: int = 20):
+    data = load_data()
     # Contains upgrade name and their value
     upgrades_list: List[Tuple[str, float]] = []
     while n > 0:
@@ -115,7 +132,19 @@ if __name__ == "__main__":
     )
     args = parser.parse_args()
     if args.one_upgrade:
-        one_upgrade(args.verbose)
+        best_upgrade, _ = one_upgrade(args.verbose)
+        is_upgraded = False
+        print(f"Have you upgraded {best_upgrade} ?")
+        while not is_upgraded:
+            answer = input("y/N")
+            if answer == "Y" or answer == "y":
+                is_upgraded = True
+                write_data_level(best_upgrade)
+                print("You have upgraded {}".format(best_upgrade))
+            elif answer == "N" or answer == "n" or answer == "":
+                break
+            else:
+                print("Please answer y or n")
     elif args.chain_upgrades:
         chain_upgrades(args.n)
     else:
