@@ -15,7 +15,7 @@
         "cps": 500
     },
     "C-Robot": {
-        "levels": 39,
+        "levels": 49,
         "base_cost": 2000,
         "cps": 1000
     },
@@ -40,22 +40,22 @@
         "cps": 40000
     },
     "Cookie Cloner": {
-        "levels": 29,
+        "levels": 32,
         "base_cost": 1500000,
         "cps": 100000
     },
     "C-Accelerator": {
-        "levels": 29,
+        "levels": 32,
         "base_cost": 5000000,
         "cps": 300000
     },
     "Electron Cookie": {
-        "levels": 29,
+        "levels": 31,
         "base_cost": 15000000,
         "cps": 800000
     },
     "Atomic-C": {
-        "levels": 28,
+        "levels": 31,
         "base_cost": 30000000,
         "cps": 1500000
     },
@@ -70,7 +70,7 @@
         "cps": 5000
     },
     "Cookie Tsunami": {
-        "levels": 7,
+        "levels": 10,
         "base_cost": 1000000000,
         "cps": 10000
     },

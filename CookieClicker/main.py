@@ -2,21 +2,22 @@ from __future__ import annotations
 
 import json
 from argparse import ArgumentParser
+from os import path
 from typing import Dict, List, Tuple
 
 
-def load_data() -> Dict[str, Dict[str, float]]:
+def load_data() -> Dict[str, Dict[str, int]]:
     """
     Loads the data from the JSON file.
     """
-    with open("powerups.json") as f:
+    with open(path.join(path.dirname(__file__), "powerups.json")) as f:
         return json.load(f)
 
 
 def write_data_level(upgrade_name: str):
     data = load_data()
     data[upgrade_name]["levels"] += 1
-    with open("powerups.json", "w") as f:
+    with open(path.join(path.dirname(__file__), "powerups.json"), "w") as f:
         json.dump(data, f, indent=4)
 
 
@@ -36,7 +37,7 @@ def powerups_formula(final_level: int, powerup_name: str):
     return 1.4 ** (final_level - 1) * data[powerup_name]["base_cost"]
 
 
-def one_upgrade(verbose: int = 2) -> Tuple[str, float]:
+def one_upgrade(data, verbose: int = 2) -> Tuple[str, float]:
     """
     Prints the most cost effective upgrade, and returns
     the name of this upgrade.
@@ -45,7 +46,6 @@ def one_upgrade(verbose: int = 2) -> Tuple[str, float]:
              1: print the best upgrade only,
              2: print all upgrades and their value
     """
-    data = load_data()
     best_cost = float("inf")
     best_key = ""
     # When 2 powerups in a row are zero level, we can't access them
@@ -82,20 +82,10 @@ def chain_upgrades(n: int = 20):
     # Contains upgrade name and their value
     upgrades_list: List[Tuple[str, float]] = []
     while n > 0:
-        upgrade_key, upgrade_value = one_upgrade(verbose=0)
+        upgrade_key, upgrade_value = one_upgrade(data, verbose=0)
         data[upgrade_key]["levels"] += 1
         upgrades_list.append((upgrade_key, upgrade_value))
         n -= 1
-    print(
-        "Upgrades order: \n- {}".format(
-            "\n- ".join(
-                [
-                    f"{upgrade_name} ({upgrade_value:.0f})"
-                    for upgrade_name, upgrade_value in upgrades_list
-                ]
-            )
-        )
-    )
     return upgrades_list
 
 
@@ -131,8 +121,9 @@ if __name__ == "__main__":
         help="Number of upgrades to chain",
     )
     args = parser.parse_args()
+    data = load_data()
     if args.one_upgrade:
-        best_upgrade, _ = one_upgrade(args.verbose)
+        best_upgrade, _ = one_upgrade(data, args.verbose)
         is_upgraded = False
         print(f"Have you upgraded {best_upgrade} ?")
         while not is_upgraded:
@@ -146,7 +137,17 @@ if __name__ == "__main__":
             else:
                 print("Please answer y or n")
     elif args.chain_upgrades:
-        chain_upgrades(args.n)
+        upgrades_list = chain_upgrades(args.n)
+        print(
+            "Upgrades order: \n- {}".format(
+                "\n- ".join(
+                    [
+                        f"{upgrade_name} ({upgrade_value:.0f})"
+                        for upgrade_name, upgrade_value in upgrades_list
+                    ]
+                )
+            )
+        )
     else:
         print("No argument given.")
         parser.print_help()
