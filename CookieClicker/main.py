@@ -123,19 +123,21 @@ if __name__ == "__main__":
     args = parser.parse_args()
     data = load_data()
     if args.one_upgrade:
-        best_upgrade, _ = one_upgrade(data, args.verbose)
-        is_upgraded = False
-        print(f"Have you upgraded {best_upgrade} ?")
-        while not is_upgraded:
-            answer = input("y/N")
-            if answer == "Y" or answer == "y":
-                is_upgraded = True
-                write_data_level(best_upgrade)
-                print("You have upgraded {}".format(best_upgrade))
-            elif answer == "N" or answer == "n" or answer == "":
-                break
-            else:
-                print("Please answer y or n")
+        while True:
+            data = load_data()
+            best_upgrade, _ = one_upgrade(data, args.verbose)
+            is_upgraded = False
+            print(f"Have you upgraded {best_upgrade} ?")
+            while not is_upgraded:
+                answer = input("y/N")
+                if answer == "Y" or answer == "y":
+                    is_upgraded = True
+                    write_data_level(best_upgrade)
+                    print("You have upgraded {}".format(best_upgrade))
+                elif answer == "N" or answer == "n" or answer == "":
+                    break
+                else:
+                    print("Please answer y or n")
     elif args.chain_upgrades:
         upgrades_list = chain_upgrades(args.n)
         print(

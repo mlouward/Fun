@@ -40,39 +40,39 @@
         "cps": 40000
     },
     "Cookie Cloner": {
-        "levels": 32,
+        "levels": 33,
         "base_cost": 1500000,
         "cps": 100000
     },
     "C-Accelerator": {
-        "levels": 32,
+        "levels": 33,
         "base_cost": 5000000,
         "cps": 300000
     },
     "Electron Cookie": {
-        "levels": 31,
+        "levels": 32,
         "base_cost": 15000000,
         "cps": 800000
     },
     "Atomic-C": {
-        "levels": 31,
+        "levels": 32,
         "base_cost": 30000000,
         "cps": 1500000
     },
     "Cookie Volcano": {
         "levels": 10,
         "base_cost": 100000000,
-        "cps": 3000
+        "cps": 3000000
     },
     "Earthquake-C": {
         "levels": 13,
         "base_cost": 300000000,
-        "cps": 5000
+        "cps": 5000000
     },
     "Cookie Tsunami": {
         "levels": 10,
         "base_cost": 1000000000,
-        "cps": 10000
+        "cps": 10000000
     },
     "Synthetic Cookie": {
         "levels": 6,
@@ -85,17 +85,17 @@
         "cps": 30000
     },
     "Cookie Cyborg": {
-        "levels": 2,
+        "levels": 3,
         "base_cost": 20000000000,
         "cps": 50000
     },
     "Alien Robot": {
-        "levels": 1,
+        "levels": 2,
         "base_cost": 40000000000,
         "cps": 75000
     },
     "Alien Lab": {
-        "levels": 1,
+        "levels": 2,
         "base_cost": 60000000000,
         "cps": 100000
     },
@@ -105,7 +105,7 @@
         "cps": 150000
     },
     "Alien C-X": {
-        "levels": 0,
+        "levels": 1,
         "base_cost": 250000000000,
         "cps": 300000
     },
