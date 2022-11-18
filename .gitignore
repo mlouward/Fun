@@ -1,3 +1,6 @@
 node_modules/
 .env
 aehoard.ovpn
+**/catboost_info/*
+**/catboost_info/*
+ML/kaggle_spaceship_titanic/catboost_info/learn_error.tsv
