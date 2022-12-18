@@ -96,6 +96,8 @@ class Game extends React.Component {
     }
 
     async componentDidMount() {
+        // get words from file
+        this.getWordsFromFile(options[0]);
         // Event listener for user input
         document.addEventListener("keydown", (event) =>
             this.handleKeyDown(event)
