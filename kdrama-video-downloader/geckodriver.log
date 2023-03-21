@@ -1,0 +1,16 @@
+1677097292550	geckodriver	INFO	Listening on 127.0.0.1:8501
+1677097295616	mozrunner::runner	INFO	Running command: "C:\\Program Files\\Mozilla Firefox\\firefox.exe" "--marionette" "--remote-debugging-port" "8502" "--remote-allow-hosts" "localhost" "-no-remote" "-profile" "C:\\Users\\Maxime\\AppData\\Local\\Temp\\rust_mozprofileWF8iBQ"
+1677097296321	Marionette	INFO	Marionette enabled
+Dynamically enable window occlusion 0
+1677097296331	Marionette	INFO	Listening on port 8518
+Read port: 8518
+WebDriver BiDi listening on ws://127.0.0.1:8502
+1677097296599	RemoteAgent	WARN	TLS certificate errors will be ignored for this session
+console.warn: SearchSettings: "get: No settings file exists, new profile?" (new NotFoundError("Could not open the file at C:\\Users\\Maxime\\AppData\\Local\\Temp\\rust_mozprofileWF8iBQ\\search.json.mozlz4", (void 0)))
+DevTools listening on ws://127.0.0.1:8502/devtools/browser/73bdae49-e674-4828-a07f-7fca505e2588
+JavaScript warning: https://kissasian.li/cdn-cgi/challenge-platform/h/g/orchestrate/managed/v1?ray=79da6df8ac742a33 line 1 > Function, line 3: WEBGL_debug_renderer_info is deprecated in Firefox and will be removed. Please use RENDERER.
+JavaScript warning: https://challenges.cloudflare.com/cdn-cgi/challenge-platform/h/g/orchestrate/chl_api/v1?ray=79da6e100e3c99b0 line 1 > Function, line 3: WEBGL_debug_renderer_info is deprecated in Firefox and will be removed. Please use RENDERER.
+console.error: (new TypeError("lazy.AsyncShutdown.profileBeforeChange is undefined", "resource://services-settings/Database.jsm", 510))
+JavaScript warning: https://kissasian.li/cdn-cgi/challenge-platform/h/g/orchestrate/managed/v1?ray=79da6e2daf332a33 line 1 > Function, line 3: WEBGL_debug_renderer_info is deprecated in Firefox and will be removed. Please use RENDERER.
+JavaScript warning: https://kissasian.li/cdn-cgi/challenge-platform/h/g/orchestrate/managed/v1?ray=79da6e63f98e2a33 line 1 > Function, line 3: WEBGL_debug_renderer_info is deprecated in Firefox and will be removed. Please use RENDERER.
+JavaScript warning: https://challenges.cloudflare.com/cdn-cgi/challenge-platform/h/g/orchestrate/chl_api/v1?ray=79da6e6eeab799b0 line 1 > Function, line 3: WEBGL_debug_renderer_info is deprecated in Firefox and will be removed. Please use RENDERER.
