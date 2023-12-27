@@ -22,11 +22,10 @@ class TestGame:
 
 
 class TestQueries:
-    def __init__(self) -> None:
-        self.connector = GraphDbConnector.get_default_connection()
-
-    def __del__(self):
-        self.connector.close()
-
     def test_get_id_from_name(self):
-        assert GraphDbConnector.get_id_from_name("Tom Cruise") == 287
+        assert GraphDbConnector.get_id_from_name("Tom Cruise") == 500
+
+    def test_get_id_from_name_multiple_results(self):
+        with pytest.warns(UserWarning):
+            # expect most popular to be returned (Tom Hanks)
+            assert GraphDbConnector.get_id_from_name("Tom") == 31

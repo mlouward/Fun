@@ -1,3 +1,5 @@
+import warnings
+
 from neo4j import GraphDatabase
 
 
@@ -165,16 +167,19 @@ class GraphDbConnector:
             """
             MATCH (p:Person)
             WHERE toLower(p.name) CONTAINS toLower($name)
-            RETURN p.id AS id
+            RETURN p.id AS id, p.popularity AS pop ORDER BY pop DESC;
             """,
             name=name,
         )
-        if result.peek() is None:
+        results = result.data()
+        if not results:
             raise ValueError(f"No person found with name {name}")
 
-        if len(result.data()) > 1:
-            print(f"Multiple people found with name {name}. Using the first one.")
-        return result.single()["id"]
+        if len(results) > 1:
+            warnings.warn(
+                f"Multiple people found with name {name}. Using the first one."
+            )
+        return results[0]["id"]
 
     def get_possible_movies(self, movie_id: int) -> list[int]:
         """

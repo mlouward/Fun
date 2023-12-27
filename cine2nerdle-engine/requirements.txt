@@ -1,5 +1,8 @@
 jsonlines==4.0.0
 neo4j==5.15.0
 pandas==1.5.2
-requests==2.31.0
+pytest==7.4.3
+python-dotenv==1.0.0
+Requests==2.31.0
+setuptools==65.5.0
 tqdm==4.66.1
