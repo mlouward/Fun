@@ -4,6 +4,7 @@ Scripts/
 .ruff_cache/
 movies.jsonl
 etc/
+.vscode/
 
 # Python Template
 # Byte-compiled / optimized / DLL files
