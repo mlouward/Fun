@@ -5,6 +5,12 @@ class GraphDbConnector:
     def __init__(self, uri, user, password):
         self.driver = GraphDatabase.driver(uri, auth=(user, password))
 
+    @staticmethod
+    def get_default_connection():
+        return GraphDbConnector(
+            uri="bolt://localhost:7687", user="neo4j", password="password"
+        )
+
     def close(self):
         self.driver.close()
 
@@ -23,7 +29,7 @@ class GraphDbConnector:
     def _initialize_database(tx) -> None:
         """
         Create constraints on movie and person ids.
-        Create indexes on ACTED_IN role and job.
+        Create indexes on APPEARED_IN role and job.
         Args:
             tx: neo4j transaction
         """
@@ -39,12 +45,12 @@ class GraphDbConnector:
         )
         tx.run(
             """
-            CREATE INDEX acted_in_role_index FOR ()-[r:ACTED_IN]-() ON (r.role)
+            CREATE INDEX appeared_in_role_index FOR ()-[r:APPEARED_IN]-() ON (r.role)
             """
         )
         tx.run(
             """
-            CREATE INDEX acted_in_job_index FOR ()-[r:ACTED_IN]-() ON (r.job)
+            CREATE INDEX appeared_in_job_index FOR ()-[r:APPEARED_IN]-() ON (r.job)
             """
         )
 
@@ -125,10 +131,76 @@ class GraphDbConnector:
             """
             MATCH (p:Person {id: $person_id})
             MATCH (m:Movie {id: $movie_id})
-            MERGE (p)-[r:ACTED_IN {role: $role, job: $job}]->(m)
+            MERGE (p)-[r:APPEARED_IN {role: $role, job: $job}]->(m)
             """,
             person_id=person_id,
             movie_id=movie_id,
             role=role,
             job=job,
         )
+
+    @staticmethod
+    def get_id_from_name(name: str) -> int:
+        """
+        Get the id of a person from their name.
+        Args:
+            name: person name
+        Returns:
+            person id
+        """
+        with GraphDbConnector.get_default_connection().driver.session() as session:
+            return session.execute_read(GraphDbConnector._get_id_from_name, name)
+
+    @staticmethod
+    def _get_id_from_name(tx, name: str) -> int:
+        """Get the id of a person from their name, using a case-insensitive partial match.
+        If more than one person matches the name, return the first one and show a warning.
+        Args:
+            tx: neo4j transaction
+            name: person name
+        Returns:
+            person id
+        """
+        result = tx.run(
+            """
+            MATCH (p:Person)
+            WHERE toLower(p.name) CONTAINS toLower($name)
+            RETURN p.id AS id
+            """,
+            name=name,
+        )
+        if result.peek() is None:
+            raise ValueError(f"No person found with name {name}")
+
+        if len(result.data()) > 1:
+            print(f"Multiple people found with name {name}. Using the first one.")
+        return result.single()["id"]
+
+    def get_possible_movies(self, movie_id: int) -> list[int]:
+        """
+        Get the possible movies for the current player.
+        Args:
+            movie_id: movie id
+        Returns:
+            list of movie ids
+        """
+        with self.driver.session() as session:
+            return session.execute_read(self._get_possible_movies, movie_id)
+
+    @staticmethod
+    def _get_possible_movies(tx, movie_id: int) -> list[int]:
+        """Get the possible movies for the current player.
+        Args:
+            tx: neo4j transaction
+            movie_id: movie id
+        Returns:
+            list of movie ids
+        """
+        result = tx.run(
+            """
+            MATCH (m:Movie {id: $movie_id})-[r:APPEARED_IN]-(p:Person)
+            RETURN m.id AS id
+            """,
+            movie_id=movie_id,
+        )
+        return [record["id"] for record in result.data()]
