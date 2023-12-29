@@ -1,8 +1,9 @@
 import pytest
-from neo4j import Driver
 
+from game.movie import Movie
+from game.neo4j_utils.neo4j_utils import GraphDbConnector
+from game.person import Person
 from game.play_game import Game, Player
-from neo4j_utils.neo4j_utils import GraphDbConnector
 
 
 @pytest.fixture
@@ -30,22 +31,20 @@ class TestGame:
 
     def test_start_game(self):
         game = Game()
-        game.start_game(1, [1, 2, 3])
-        assert game.current_movie == 1
-        assert game.links_count == {1: 0, 2: 0, 3: 0}
-        assert game.movies_played == [1]
+        game.start_game(Movie(1), [Person(2), Person(5)])
+        assert game.current_movie == Movie(1)
+        assert game.links_count == {}
+        assert game.movies_played == [Movie(1)]
         assert game.turn == 0
         assert game.game_over is False
 
     def test_set_initial_movie(self, db_connector: GraphDbConnector):
         game = Game()
         game.set_initial_movie("The Matrix", 1999)
-        movie, links = db_connector.get_id_and_links_from_movie_title_and_year(
-            "The Matrix", 1999
-        )
-        assert game.current_movie == movie
-        assert game.links_count == {link: 0 for link in links}
-        assert game.movies_played == [movie]
+        movie_object = db_connector.get_movie_from_name_and_year("The Matrix", 1999)
+        assert game.current_movie == movie_object
+        assert game.links_count == {}
+        assert game.movies_played == [movie_object]
         assert game.turn == 0
         assert game.game_over is False
 
@@ -58,13 +57,3 @@ class TestGame:
         game = Game()
         with pytest.warns(UserWarning):
             game.set_initial_movie("the", 1999)
-
-
-class TestQueries:
-    def test_get_id_from_name(self):
-        assert GraphDbConnector.get_id_from_person_name("Tom Cruise") == 500
-
-    def test_get_id_from_name_multiple_results(self):
-        with pytest.warns(UserWarning):
-            # expect most popular to be returned (Tom Hanks)
-            assert GraphDbConnector.get_id_from_person_name("Tom") == 31
