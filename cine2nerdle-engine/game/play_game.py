@@ -263,6 +263,14 @@ def show_next_choices(movie_choices: list[Movie], choice: int | None = None) -> 
     return chosen_movie.title, chosen_movie.release_year
 
 
+def show_next_choices_no_input(movie_choices: list[Movie]):
+    """
+    Show the next choices to the player.
+    """
+    for i, movie in enumerate(movie_choices):
+        print(f"{i+1}. {movie}")
+
+
 def auto_play_to_profile():
     game = Game()
     game.set_initial_movie(game.connector.get_movie_from_title_and_year("The Lion King", 1994))
@@ -396,6 +404,165 @@ def play_against_opponent():
     )
 
 
+def analyze_game_packet(packet, game: Game):
+    # Get the data from the websocket payload
+    rawtext = packet["websocket"].get_field_value("websocket.payload.text")
+    # parse the json in the payload
+    if not rawtext:
+        return
+    data = re.search(r"^\d+(\[.*\])", rawtext)
+    parsed_data = json.loads(data.group(1)) if data else None
+    if not parsed_data:
+        print(rawtext)
+        return
+    if VERBOSE >= 2:
+        print(parsed_data)
+        print("-" * 20)
+    # 1st element is a string, 2nd is a dict
+    action: str
+    game_data: dict
+    action, game_data = parsed_data[0], parsed_data[1]
+    # appears after clicking on "find game"
+    # Should set the starting movie
+    if action == "find-match":
+        print("found match")
+        starting_movie_input: str = game_data["startingMovieInput"]
+        if not starting_movie_input:
+            raise ValueError("No starting movie input.")
+        name, year = starting_movie_input.split(" (")
+        year = int(year[:-1])
+        # get initial movie information and set it for the current game
+        starting_movie: Movie = game.connector.get_movie_from_title_and_year(name, year)
+        game.set_initial_movie(starting_movie)
+        if VERBOSE >= 1:
+            print(f"Starting movie: {starting_movie}")
+    elif action == "ready-up":
+        print("ready")
+        # set the player's bans and who plays first according to pdata["playerNumber"]
+        game.starting_player.role = "me"
+        game.starting_player.set_bans(game.connector, game_data["bans"])
+        game.starting_player.username = game_data["username"]
+
+        players_data: dict[str, Any] = game_data["playersData"]
+
+        game.opponent.role = "opponent"
+        game.opponent.set_bans(game.connector, [])
+        # get the key from playersData that is not the starting player's username
+        game.opponent.username = (players_data.keys() - {game.starting_player.username}).pop()
+
+        game.starting_player.player_number = players_data[game.starting_player.username][
+            "playerNumber"
+        ]
+        game.opponent.player_number = players_data[game.opponent.username]["playerNumber"]
+        game.to_play = (
+            game.starting_player if game.starting_player.player_number == 1 else game.opponent
+        )
+        if VERBOSE >= 1:
+            print(f"Starting player: {repr(game.starting_player)}")
+            print(f"Opponent: {repr(game.opponent)}")
+            print(f"To play: {game.to_play.role}")
+        if game.to_play == game.starting_player:
+            # suggest 5 movies to play
+            show_next_choices_no_input(game.get_possible_movies_strategy_1())
+
+    elif action == "add-time":
+        if VERBOSE >= 1:
+            print("lifeline used")
+        # Ask if skip was used by opponent
+        # if yes, update game state
+        skip_used = input("Did the opponent use skip? (Y/n): ")
+        if skip_used == "y" or "":
+            game.opponent.use_skip()
+            # suggest 5 movies to play
+            show_next_choices_no_input(game.get_possible_movies_strategy_1())
+
+    elif action == "update-game":
+        print("update", game.to_play)
+        if "SKIP" in game_data["connections"]:
+            # opponent used skip
+            if VERBOSE >= 1:
+                print("Opponent used skip")
+            game.opponent.use_skip()
+            show_next_choices_no_input(game.get_possible_movies_strategy_1())
+            return
+
+        # triggered after submitting a movie, or after opponent submits a movie
+        # get who just played a movie to make the distinction: do we need to play a movie
+        # or did we just play and we need to update the game state ?
+        if game.to_play == game.starting_player:
+            if VERBOSE >= 1:
+                print("We played:")
+            # check if skipped
+            if (
+                game_data["gameData"]["playersData"][game.starting_player.username]["lifelines"][
+                    "skip"
+                ]
+                is False
+            ):
+                if VERBOSE >= 1:
+                    print("We used skip")
+                game.starting_player.use_skip()
+
+            # verify that the game says that next player's turn is the opponent
+            assert game_data["gameData"]["playerTurn"] == game.opponent.player_number
+            # get the movie we just played
+            title, year = game_data["newMovie"]["title"].split(" (")
+            year = int(year[:-1])
+            our_movie: Movie = game.connector.get_movie_from_title_and_year(title, year)
+            if VERBOSE >= 1:
+                print(our_movie)
+
+            # get the links we used
+            used_links_ids = game.connector.get_used_links_from_movies(
+                game.current_movie, our_movie
+            )
+            # update game state
+            game.play_turn(our_movie, used_links_ids)
+        else:
+            if VERBOSE >= 1:
+                print("Opponent played:")
+            # check if opponent skipped
+            if (
+                game_data["gameData"]["playersData"][game.opponent.username]["lifelines"]["skip"]
+                is False
+            ):
+                if VERBOSE >= 1:
+                    print("Opponent used skip")
+                game.opponent.use_skip()
+
+            # verify that the game also says next turn is ours
+            # assert game_data["gameData"]["playerTurn"] == game.starting_player.player_number
+            # get the movie played by the opponent
+            title, year = game_data["newMovie"]["title"].split(" (")
+            year = int(year[:-1])
+            opponent_movie: Movie = game.connector.get_movie_from_title_and_year(title, year)
+            if VERBOSE >= 1:
+                print(opponent_movie)
+            # get the links used by the opponent
+            used_links_ids = game.connector.get_used_links_from_movies(
+                game.current_movie, opponent_movie
+            )
+            # update game state
+            game.play_turn(opponent_movie, used_links_ids)
+
+            # suggest 5 movies to play for us
+            show_next_choices_no_input(game.get_possible_movies_strategy_1())
+            # once we select a movie, the game will send a new update-game event
+
+    elif action == "game-over":
+        print("game over")
+        # game over
+        # get the winner
+        winner: str = game_data["gameData"]["winner"]  # 1 or 2
+        if VERBOSE >= 1:
+            print(f"{winner=}")
+        if winner == game.starting_player.player_number:
+            print("We won!")
+        elif winner == game.opponent.player_number:
+            print("We lost!")
+        return
+
+
 def online_play():
     game = Game()
 
@@ -404,153 +571,7 @@ def online_play():
     capture = pyshark.LiveCapture(
         interface="Ethernet", display_filter='_ws.col.protocol == "WebSocket"'
     )
-    for packet in capture.sniff_continuously():
-        # Get the data from the websocket payload
-        rawtext = packet["websocket"].get_field_value("websocket.payload.text")
-        # parse the json in the payload
-        if not rawtext:
-            continue
-        data = re.search(r"^\d+(\[.*\])", rawtext)
-        parsed_data = json.loads(data.group(1)) if data else None
-        if not parsed_data:
-            print(rawtext)
-            continue
-        if VERBOSE >= 2:
-            print(parsed_data)
-            print("-" * 20)
-        # 1st element is a string, 2nd is a dict
-        action: str
-        game_data: dict
-        action, game_data = parsed_data[0], parsed_data[1]
-        # appears after clicking on "find game"
-        # Should set the starting movie
-        if action == "find-match":
-            print("found match")
-            starting_movie_input: str = game_data["startingMovieInput"]
-            if not starting_movie_input:
-                raise ValueError("No starting movie input.")
-            name, year = starting_movie_input.split(" (")
-            year = int(year[:-1])
-            # get initial movie information and set it for the current game
-            starting_movie: Movie = game.connector.get_movie_from_title_and_year(name, year)
-            game.set_initial_movie(starting_movie)
-            if VERBOSE >= 1:
-                print(f"Starting movie: {starting_movie}")
-        elif action == "ready-up":
-            print("ready")
-            # set the player's bans and who plays first according to pdata["playerNumber"]
-            game.starting_player.role = "me"
-            game.starting_player.set_bans(game.connector, game_data["bans"])
-            game.starting_player.username = game_data["username"]
-
-            players_data: dict[str, Any] = game_data["playersData"]
-
-            game.opponent.role = "opponent"
-            game.opponent.set_bans(game.connector, [])
-            # get the key from playersData that is not the starting player's username
-            game.opponent.username = (players_data.keys() - {game.starting_player.username}).pop()
-
-            game.starting_player.player_number = players_data[game.starting_player.username][
-                "playerNumber"
-            ]
-            game.opponent.player_number = players_data[game.opponent.username]["playerNumber"]
-            game.to_play = (
-                game.starting_player if game.starting_player.player_number == 1 else game.opponent
-            )
-            if VERBOSE >= 1:
-                print(f"Starting player: {repr(game.starting_player)}")
-                print(f"Opponent: {repr(game.opponent)}")
-                print(f"To play: {game.to_play.role}")
-            if game.to_play == game.starting_player:
-                # suggest 5 movies to play
-                show_next_choices(game.get_possible_movies_strategy_1())
-
-        elif action == "add-time":
-            if VERBOSE >= 1:
-                print("lifeline used")
-            # Ask if skip was used by opponent
-            # if yes, update game state
-            skip_used = input("Did the opponent use skip? (Y/n): ")
-            if skip_used == "y" or "":
-                game.opponent.use_skip()
-                # suggest 5 movies to play
-                show_next_choices(game.get_possible_movies_strategy_1())
-
-        elif action == "update-game":
-            print("update", game.to_play)
-            # triggered after submitting a movie, or after opponent submits a movie
-            # get who just played a movie to make the distinction: do we need to play a movie
-            # or did we just play and we need to update the game state ?
-            if game.to_play == game.starting_player:
-                if VERBOSE >= 1:
-                    print("We played:")
-                # check if skipped
-                if (
-                    game_data["gameData"]["playersData"][game.starting_player.username][
-                        "lifelines"
-                    ]["skip"]
-                    is False
-                ):
-                    game.starting_player.use_skip()
-
-                # verify that the game says that next player's turn is the opponent
-                assert game_data["gameData"]["playerTurn"] == game.opponent.player_number
-                # get the movie we just played
-                title, year = game_data["newMovie"]["title"].split(" (")
-                year = int(year[:-1])
-                our_movie: Movie = game.connector.get_movie_from_title_and_year(title, year)
-                if VERBOSE >= 1:
-                    print(our_movie)
-
-                # get the links we used
-                used_links_ids = game.connector.get_used_links_from_movies(
-                    game.current_movie, our_movie
-                )
-                # update game state
-                game.play_turn(our_movie, used_links_ids)
-            else:
-                if VERBOSE >= 1:
-                    print("Opponent played:")
-                # check if opponent skipped
-                if (
-                    game_data["gameData"]["playersData"][game.opponent.username]["lifelines"][
-                        "skip"
-                    ]
-                    is False
-                ):
-                    game.opponent.use_skip()
-
-                # verify that the game also says next turn is ours
-                # assert game_data["gameData"]["playerTurn"] == game.starting_player.player_number
-                # get the movie played by the opponent
-                title, year = game_data["newMovie"]["title"].split(" (")
-                year = int(year[:-1])
-                opponent_movie: Movie = game.connector.get_movie_from_title_and_year(title, year)
-                if VERBOSE >= 1:
-                    print(opponent_movie)
-                # get the links used by the opponent
-                used_links_ids = game.connector.get_used_links_from_movies(
-                    game.current_movie, opponent_movie
-                )
-                # update game state
-                game.play_turn(opponent_movie, used_links_ids)
-
-                # suggest 5 movies to play for us
-                show_next_choices(game.get_possible_movies_strategy_1())
-                # once we select a movie, the game will send a new update-game event
-
-        elif action == "game-over":
-            print("game over")
-            # game over
-            # get the winner
-            winner: str = game_data["gameData"]["winner"]  # 1 or 2
-            if VERBOSE >= 1:
-                print(f"{winner=}")
-            if winner == game.starting_player.player_number:
-                print("We won!")
-            elif winner == game.opponent.player_number:
-                print("We lost!")
-            break
+    capture.apply_on_packets(lambda packet: analyze_game_packet(packet, game))
 
 
 if __name__ == "__main__":
