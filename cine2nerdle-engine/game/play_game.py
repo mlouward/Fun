@@ -208,7 +208,6 @@ class Game:
         """
         Set the initial movie for the game.
         """
-        all_links = self.connector.get_all_links_from_movie(movie)
         self._start_game(movie)
 
     def play_turn(self, movie: Movie, used_links: list[Person]) -> None:
@@ -240,6 +239,13 @@ class Game:
                 self.links_count[link_id] += 1
             else:
                 self.links_count[link_id] = 1
+
+    def use_skip(self, player: Player) -> None:
+        """
+        Use skip for a player => it is not their turn anymore.
+        Update game state.
+        """
+        player.use_skip()
 
 
 def show_next_choices(movie_choices: list[Movie], choice: int | None = None) -> Movie:
@@ -428,6 +434,10 @@ def play_client_side(game: Game):
     # get the movie played by the opponent
     title = input("Enter opponent's movie name: ")
     year = int(input("Enter opponent's movie year: "))
+    if not title and not year:
+        # opponent lost
+        print("Opponent lost?")
+        return
     opponent_movie: Movie = game.connector.get_movie_from_title_and_year(title, year)
     if VERBOSE >= 1:
         print(opponent_movie)
@@ -446,66 +456,101 @@ def play_client_side(game: Game):
         print(f"Used links ids this turn: {used_links}")
 
     # update game state
-    game.play_turn(next_movie, used_links)
+    try:
+        game.play_turn(next_movie, used_links)
+    except ValueError:
+        print("old packet")
+        return
 
 
-def play_server_side(game, game_data):
-    if game.to_play == game.starting_player:
+def play_server_side(game: Game, game_data: dict[str, Any], action: str):
+    if action == "add-time":
         if VERBOSE >= 1:
-            print("We played:")
-        # check if skipped
-        if (
-            game_data["gameData"]["playersData"][game.starting_player.username]["lifelines"]["skip"]
-            is False
-        ):
-            if VERBOSE >= 1:
-                print("We used skip")
-            game.starting_player.use_skip()
-
-        # verify that the game says that next player's turn is the opponent
-        assert game_data["gameData"]["playerTurn"] == game.opponent.player_number
-        # get the movie we just played
-        title, year = game_data["newMovie"]["title"].split(" (")
-        year = int(year[:-1])
-        our_movie: Movie = game.connector.get_movie_from_title_and_year(title, year)
-        if VERBOSE >= 1:
-            print(our_movie)
-
-        # get the links we used
-        used_links = game.connector.get_used_links_from_movies(game.current_movie, our_movie)
-        # update game state
-        game.play_turn(our_movie, used_links)
-    else:
-        if VERBOSE >= 1:
-            print("Opponent played:")
-        # check if opponent skipped
-        if game_data["connections"][-1] == "SKIP":
-            # opponent used skip
-            if VERBOSE >= 1:
-                print("Opponent used skip")
+            print("lifeline used")
+        # Ask if skip was used by opponent
+        # if yes, update game state
+        skip_used = input("Did the opponent use skip? (y/N): ")
+        if skip_used == "y":
             game.opponent.use_skip()
+            # suggest 5 movies to play
             show_next_choices_no_input(game.get_possible_movies_strategy_1())
-            return
 
-        # verify that the game also says next turn is ours
-        # assert game_data["gameData"]["playerTurn"] == game.starting_player.player_number
-        # get the movie played by the opponent
-        title, year = game_data["newMovie"]["title"].split(" (")
-        year = int(year[:-1])
-        opponent_movie: Movie = game.connector.get_movie_from_title_and_year(title, year)
-        if VERBOSE >= 1:
-            print(opponent_movie)
-        # get the links used by the opponent
-        used_links = game.connector.get_used_links_from_movies(game.current_movie, opponent_movie)
-        # update game state
-        game.play_turn(opponent_movie, used_links)
+    else:
+        if game.to_play == game.starting_player:
+            if VERBOSE >= 1:
+                print("We played:")
+            # check if skipped
+            if (
+                game_data["gameData"]["playersData"][game.starting_player.username]["lifelines"][
+                    "skip"
+                ]
+                is False
+            ):
+                if VERBOSE >= 1:
+                    print("We used skip")
+                game.starting_player.use_skip()
 
-        # suggest 5 movies to play for us
-        show_next_choices_no_input(game.get_possible_movies_strategy_1())
-        # once we select a movie, the game will send a new update-game event
+            # verify that the game says that next player's turn is the opponent
+            assert game_data["gameData"]["playerTurn"] == game.opponent.player_number
+            # get the movie we just played
+            title, year = game_data["newMovie"]["title"].split(" (")
+            year = int(year[:-1])
+            our_movie: Movie = game.connector.get_movie_from_title_and_year(title, year)
+            if VERBOSE >= 1:
+                print(our_movie)
+
+            # get the links we used
+            used_links = game.connector.get_used_links_from_movies(game.current_movie, our_movie)
+            # update game state
+            game.play_turn(our_movie, used_links)
+        else:
+            if VERBOSE >= 1:
+                print("Opponent played:")
+            # check if opponent skipped
+            if game_data["connections"][-1] == "SKIP":
+                # opponent used skip
+                if VERBOSE >= 1:
+                    print("Opponent used skip")
+                game.use_skip(game.opponent)
+                # our turn to play
+                movie = show_next_choices(game.get_possible_movies_strategy_1())
+                # Get used links from the database
+                used_links = game.connector.get_used_links_from_movies(game.current_movie, movie)
+                if VERBOSE >= 2:
+                    print(f"Chosen movie id: {movie.id}")
+                    print(f"Used links ids this turn: {used_links}")
+                # update game state
+                try:
+                    game.play_turn(movie, used_links)
+                except ValueError:
+                    print("old packet")
+
+                return
+
+            # verify that the game also says next turn is ours
+            # assert game_data["gameData"]["playerTurn"] == game.starting_player.player_number
+            # get the movie played by the opponent
+            title, year = game_data["newMovie"]["title"].split(" (")
+            year = int(year[:-1])
+            opponent_movie: Movie = game.connector.get_movie_from_title_and_year(title, year)
+            if VERBOSE >= 1:
+                print(opponent_movie)
+            # get the links used by the opponent
+            used_links = game.connector.get_used_links_from_movies(
+                game.current_movie, opponent_movie
+            )
+            # update game state
+            try:
+                game.play_turn(opponent_movie, used_links)
+            except ValueError:
+                print("old packet")
+                return
+            # suggest 5 movies to play for us
+            show_next_choices_no_input(game.get_possible_movies_strategy_1())
+            # once we select a movie, the game will send a new update-game event
 
 
-def analyze_game_packet(packet, game: Game):
+def analyze_game_packet(packet: dict, game: Game):
     # Get the data from the websocket payload
     rawtext = packet["websocket"].get_field_value("websocket.payload.text")
     # parse the json in the payload
@@ -549,25 +594,31 @@ def analyze_game_packet(packet, game: Game):
         # After submitting a movie, we have to enter manually the movie played by the opponent,
         # update the game, and suggest 5 movies to play based on it.
         # TODO: handle skip when they are the server
+
+        # If we are server side, ignore (handled in update-game)
+        if game.starting_player.player_number == 1:
+            return
+
+        # Else, we are client side
+        if game_data["input"] == "SKIP":
+            # we used skip
+            if VERBOSE >= 1:
+                print("We used skip")
+            game.starting_player.use_skip()
+            # suggest 5 movies to play
+        elif not game_data["input"]:
+            # we lost
+            print("We lost?")
+            return
+        # else:
         # update game state with movie i just played
-        movie = game.connector.get_movie_from_title_and_year(
-            game_data["currentMovieTitle"], game_data["currentMovieYear"]
-        )
-        used_links = game.connector.get_used_links_from_movies(game.current_movie, movie)
-        game.play_turn(movie, used_links)
+        # title, year = game_data["input"].split(" (")
+        # year = int(year[:-1])
+        # movie = game.connector.get_movie_from_title_and_year(title, year)
+        # used_links = game.connector.get_used_links_from_movies(game.current_movie, movie)
+        # game.play_turn(movie, used_links)
 
         play_client_side(game)
-
-    elif action == "add-time":
-        if VERBOSE >= 1:
-            print("lifeline used")
-        # Ask if skip was used by opponent
-        # if yes, update game state
-        skip_used = input("Did the opponent use skip? (Y/n): ")
-        if skip_used == "y" or "":
-            game.opponent.use_skip()
-            # suggest 5 movies to play
-            show_next_choices_no_input(game.get_possible_movies_strategy_1())
 
     elif action in ("update-game", "add-time"):
         # In this case, the other player is player 2 (client side)
@@ -579,7 +630,7 @@ def analyze_game_packet(packet, game: Game):
         # triggered after submitting a movie, or after opponent submits a movie
         # get who just played a movie to make the distinction: do we need to play a movie
         # or did we just play and we need to update the game state ?
-        play_server_side(game, game_data)
+        play_server_side(game, game_data, action)
 
     elif action == "game-over":
         print("game over")
