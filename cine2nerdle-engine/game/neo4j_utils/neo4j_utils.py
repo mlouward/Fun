@@ -9,6 +9,8 @@ from game.person import Person
 class GraphDbConnector:
     def __init__(self, uri, database, user, password):
         self.driver: Driver = GraphDatabase.driver(uri, auth=(user, password), database=database)
+        self.driver.verify_connectivity()
+        print("Connected!")
 
     @staticmethod
     def get_default_connection() -> "GraphDbConnector":
@@ -79,9 +81,9 @@ class GraphDbConnector:
             movie: Movie object
         """
         tx.run(
-            "MERGE (m:Movie {id: $movie_id, name: $title, popularity: $popularity, release_year: $release_year})",
+            "MERGE (m:Movie {id: $movie_id, title: $title, popularity: $popularity, release_year: $release_year, name: $title})",
             movie_id=movie.id,
-            title=movie.name,
+            title=movie.title,
             popularity=movie.popularity,
             release_year=movie.release_year,
         )
@@ -118,8 +120,7 @@ class GraphDbConnector:
             job=job,
         )
 
-    @staticmethod
-    def get_person_from_name(name: str) -> Person:
+    def get_person_from_name(self, name: str) -> Person:
         """
         Get the id of a person from their name.
         Args:
@@ -127,8 +128,8 @@ class GraphDbConnector:
         Returns:
             person id
         """
-        with GraphDbConnector.get_default_connection().driver.session() as session:
-            return session.execute_read(GraphDbConnector._get_person_from_name, name)
+        with self.driver.session() as session:
+            return session.execute_read(self._get_person_from_name, name)
 
     @staticmethod
     def _get_person_from_name(tx, name: str) -> Person:
@@ -156,9 +157,9 @@ class GraphDbConnector:
             warnings.warn(f"Multiple people found with name {name}. Using the first one.")
         return Person(**results[0]["p"])
 
-    def get_movie_from_name_and_year(self, movie_name: str, release_date: int) -> Movie:
+    def get_movie_from_title_and_year(self, movie_title: str, release_date: int) -> Movie:
         """
-        Gets a movie from its name and release year.
+        Gets a movie from its title and release year.
 
         If more than one movie matches the title, return the first one and show a warning.
 
@@ -170,13 +171,13 @@ class GraphDbConnector:
         """
         with self.driver.session() as session:
             return session.execute_read(
-                self._get_movie_from_name_and_year, movie_name, release_date
+                self._get_movie_from_title_and_year, movie_title, release_date
             )
 
     @staticmethod
-    def _get_movie_from_name_and_year(tx, movie_name: str, release_date: int) -> Movie:
+    def _get_movie_from_title_and_year(tx, movie_title: str, release_date: int) -> Movie:
         """
-        Gets a movie from its name and release year.
+        Gets a movie from its title and release year.
 
         If more than one movie matches the title, return the first one and show a warning.
 
@@ -190,20 +191,20 @@ class GraphDbConnector:
         movie_result = tx.run(
             """
             MATCH (m:Movie)
-            WHERE toLower(m.name) CONTAINS toLower($title)
+            WHERE toLower(m.title) CONTAINS toLower($title)
             AND m.release_year = $year
             RETURN m ORDER BY m.popularity DESC;
             """,
-            title=movie_name,
-            year=str(release_date),
+            title=movie_title,
+            year=release_date,
         )
         results: list = movie_result.data()
         if not results:
-            raise ValueError(f"No movie found with title {movie_name} and year {release_date}.")
+            raise ValueError(f"No movie found with title {movie_title} and year {release_date}.")
 
         if len(results) > 1:
             warnings.warn(
-                f"Multiple movies found with title {movie_name} and year {release_date}. Using the first one."
+                f"Multiple movies found with title {movie_title} and year {release_date}. Using the first one."
             )
         return Movie(**results[0]["m"])
 
@@ -239,7 +240,11 @@ class GraphDbConnector:
             movie_id=movie.id,
         )
 
-        return [Person(**record["p"]) for record in result.data()]
+        result = [Person(**record["p"]) for record in result.data()]
+        if not result:
+            raise ValueError(f"No links found for movie {movie}")
+
+        return result
 
     def get_used_links_from_movies(self, current_movie: Movie, next_movie: Movie) -> list[Person]:
         """

@@ -1,9 +1,10 @@
-# %%
-
 import argparse
-from typing import Literal
+import json
+import re
+from typing import Any, Literal
 
 import pyperclip
+import pyshark
 
 from .movie import Movie
 from .neo4j_utils.neo4j_utils import GraphDbConnector
@@ -19,31 +20,45 @@ class Player:
 
     def __init__(self) -> None:
         # role
-        self._role: Literal["player", "opponent", None] = None
+        self._role: Literal["me", "opponent", None] = None
         # IDs of banned actors
         self._bans: list[Person] = []
+        self.username: str = ""
         self._skip_available: bool = True
+        self.player_number: int
+
+    def __eq__(self, __value: object) -> bool:
+        if not isinstance(__value, Player):
+            return False
+        return self.username == __value.username
+
+    def __str__(self) -> str:
+        return f"Player {self.username}"
+
+    def __repr__(self) -> str:
+        return f"Player({self.username}, {self.role}, {self.bans}, {self.player_number=}, {self.skip_available=})"
 
     @property
-    def role(self) -> Literal["player", "opponent", None]:
+    def role(self) -> Literal["me", "opponent", None]:
         return self._role
 
     @role.setter
-    def role(self, role: Literal["player", "opponent", None]) -> None:
+    def role(self, role: Literal["me", "opponent", None]) -> None:
         self._role = role
 
     @property
     def bans(self) -> list[Person]:
         return self._bans
 
-    @bans.setter
-    def bans(self, banned_names: list[str]) -> None:
+    def set_bans(self, connector: GraphDbConnector, banned_names: list[str]) -> None:
         if len(banned_names) > 3:
             raise ValueError("A player can only ban 3 actors.")
         for ban in banned_names:
+            if not ban:
+                continue
             # query the database to get the ID of the actor
             # add it to the bans list
-            person_id = GraphDbConnector.get_person_from_name(ban)
+            person_id = connector.get_person_from_name(ban)
             self._bans.append(person_id)
 
     @property
@@ -78,6 +93,7 @@ class Game:
         self.connector = GraphDbConnector.get_default_connection()
         self.starting_player: Player = Player()
         self.opponent: Player = Player()
+        self.to_play: Player
         self.current_movie: Movie  # movie_id
         self.turn: int
         self.movies_played: list[Movie]  # movie_id
@@ -85,17 +101,20 @@ class Game:
         self._possible_movies: list[Movie]  # movie_id
         self.game_over: bool
 
-    @property
-    def possible_movies(self) -> list[Movie]:
+    def _get_possible_movies(self, strategy=None) -> list[Movie]:
         """
         Get the possible movies for the current player.
         """
         all_links_from_current_movie = self.connector.get_all_links_from_movie(self.current_movie)
-        usable_links = self.get_usable_links(all_links_from_current_movie)
-        if VERBOSE:
+        if strategy == 1:
+            usable_links = self.get_usable_links_strategy_1(all_links_from_current_movie)
+        else:
+            usable_links = self.get_usable_links(all_links_from_current_movie)
+
+        if VERBOSE >= 1:
             print(f"Usable links: {usable_links}")
 
-        if usable_links == []:
+        if not usable_links:
             self.game_over = True
             raise ValueError("No possible movies left.")
 
@@ -103,25 +122,19 @@ class Game:
             self.current_movie, self.movies_played, usable_links
         )
 
-    def get_possible_movies_strategy_1(self) -> list[Movie]:
+    @property
+    def possible_movies(self) -> list[Movie]:
         """
         Get the possible movies for the current player.
         """
-        all_links_from_current_movie: list[Person] = self.connector.get_all_links_from_movie(
-            self.current_movie
-        )
-        usable_links: list[Person] = self.get_usable_links_strategy_1(all_links_from_current_movie)
-        if VERBOSE:
-            print(f"Usable links: {usable_links}")
+        return self._get_possible_movies()
 
-        possible_movies: list[Movie] = self.connector.get_possible_movies(
-            self.current_movie, self.movies_played, usable_links
-        )
-        if usable_links == [] or possible_movies == []:
-            # fallback to default strategy
-            return self.possible_movies
-
-        return possible_movies
+    def get_possible_movies_strategy_1(self) -> list[Movie]:
+        """
+        Get the possible movies for the current player. Prefers links with 2 uses, then 0 uses.
+        If no such links exist, fallback to links with 1 use.
+        """
+        return self._get_possible_movies(strategy=1)
 
     def get_usable_links(self, all_links: list[Person]) -> list[Person]:
         """
@@ -146,36 +159,57 @@ class Game:
         Returns:
             list[int]: list of usable links
         """
-        #  get the links that have not been used 3 times yet
-        return [
+        #  get the links that have been used 2 times
+        killshots = [
             link
             for link in current_movie_links
-            if link not in self.links_count
-            or self.links_count[link] == 0
-            or self.links_count[link] == 2
+            if link in self.links_count and self.links_count[link] == 2
         ]
 
-    def start_game(self, current_movie: Movie, usable_links: list[Person]):
+        if killshots:
+            possible_movies: list[Movie] = self.connector.get_possible_movies(
+                self.current_movie, self.movies_played, killshots
+            )
+            if possible_movies:
+                return killshots
+
+        # fallback to using links with 0 uses
+        zero_star_links = [
+            link
+            for link in current_movie_links
+            if link not in self.links_count or self.links_count[link] == 0
+        ]
+        if zero_star_links:
+            possible_movies: list[Movie] = self.connector.get_possible_movies(
+                self.current_movie, self.movies_played, zero_star_links
+            )
+            if possible_movies:
+                return zero_star_links
+
+        # fallback to using links with 1 use
+        return self.get_usable_links(current_movie_links)
+
+    def _start_game(self, current_movie: Movie):
         """
         Start a new game.
         """
         self.starting_player = Player()
         self.opponent = Player()
-        self.starting_player.role = "player"
+        self.starting_player.role = "me"
         self.opponent.role = "opponent"
+        self.to_play = self.starting_player
         self.turn = 0
         self.game_over = False
         self.current_movie = current_movie
         self.movies_played = [current_movie]
         self.links_count = dict()
 
-    def set_initial_movie(self, movie: str, year: int) -> None:
+    def set_initial_movie(self, movie: Movie) -> None:
         """
         Set the initial movie for the game.
         """
-        starting_movie_id = self.connector.get_movie_from_name_and_year(movie, year)
-        all_links = self.connector.get_all_links_from_movie(starting_movie_id)
-        self.start_game(starting_movie_id, all_links)
+        all_links = self.connector.get_all_links_from_movie(movie)
+        self._start_game(movie)
 
     def play_turn(self, movie: Movie, used_links: list[Person]) -> None:
         """
@@ -185,11 +219,16 @@ class Game:
         - used links
         - current movie
         """
+        if movie in self.movies_played:
+            raise ValueError("Movie already played.")
         self.turn += 1
         self.movies_played.append(movie)
         self.current_movie = movie
         self.update_used_links(used_links)
-        if VERBOSE:
+        self.to_play = (
+            self.opponent if self.to_play == self.starting_player else self.starting_player
+        )
+        if VERBOSE >= 1:
             print(f"Turn: {self.turn}")
             print(f"Movies played: {self.movies_played}")
             print(f"Links count: {self.links_count}")
@@ -203,7 +242,6 @@ class Game:
                 self.links_count[link_id] = 1
 
 
-# %%
 def show_next_choices(movie_choices: list[Movie], choice: int | None = None) -> tuple[str, int]:
     """
     Show the next choices to the player.
@@ -216,23 +254,23 @@ def show_next_choices(movie_choices: list[Movie], choice: int | None = None) -> 
     if not choice:
         choice = int(input("Your choice: "))
     chosen_movie: Movie = movie_choices[choice - 1]
-    if VERBOSE:
+    if VERBOSE >= 1:
         print(f"Chosen movie: {chosen_movie}")
     # copy to clipboard for faster input
     pyperclip.copy(f"{chosen_movie}")
-    if chosen_movie.name is None or chosen_movie.release_year is None:
+    if chosen_movie.title is None or chosen_movie.release_year is None:
         raise ValueError("Movie name or year is None.")
-    return chosen_movie.name, chosen_movie.release_year
+    return chosen_movie.title, chosen_movie.release_year
 
 
 def auto_play_to_profile():
     game = Game()
-    game.set_initial_movie("The Lion King", 1994)
+    game.set_initial_movie(game.connector.get_movie_from_title_and_year("The Lion King", 1994))
     next_name, next_year = show_next_choices(game.possible_movies, 1)
-    next_movie_id = game.connector.get_movie_from_name_and_year(next_name, next_year)
+    next_movie_id = game.connector.get_movie_from_title_and_year(next_name, next_year)
     # Get used links from the database
     used_links_ids = game.connector.get_used_links_from_movies(game.current_movie, next_movie_id)
-    if VERBOSE:
+    if VERBOSE >= 1:
         print(f"Chosen movie id: {next_movie_id}")
         print(f"Used links ids this turn: {used_links_ids}")
     # update game state
@@ -247,7 +285,7 @@ def play_loop_single_player():
 
     game = Game()
     # game.set_initial_movie(input("Movie: "), int(input("Year: ")))
-    game.set_initial_movie("freaky friday", 2003)
+    game.set_initial_movie(game.connector.get_movie_from_title_and_year("freaky friday", 2003))
 
     while True:
         if game.turn % 2 == 0:
@@ -258,12 +296,12 @@ def play_loop_single_player():
             except ValueError:
                 print("No possible movies left.")
                 break
-            next_movie_id = game.connector.get_movie_from_name_and_year(next_name, next_year)
+            next_movie_id = game.connector.get_movie_from_title_and_year(next_name, next_year)
             # Get used links from the database
             used_links_ids = game.connector.get_used_links_from_movies(
                 game.current_movie, next_movie_id
             )
-            if VERBOSE:
+            if VERBOSE >= 1:
                 print(f"Chosen movie id: {next_movie_id}")
                 print(f"Used links ids this turn: {used_links_ids}")
             # update game state
@@ -278,12 +316,12 @@ def play_loop_single_player():
             except ValueError:
                 print("No possible movies left.")
                 break
-            next_movie_id = game.connector.get_movie_from_name_and_year(next_name, next_year)
+            next_movie_id = game.connector.get_movie_from_title_and_year(next_name, next_year)
             # Get used links from the database
             used_links_ids = game.connector.get_used_links_from_movies(
                 game.current_movie, next_movie_id
             )
-            if VERBOSE:
+            if VERBOSE >= 1:
                 print(f"Chosen movie id: {next_movie_id}")
                 print(f"Used links ids this turn: {used_links_ids}")
             game.play_turn(next_movie_id, used_links_ids)
@@ -303,28 +341,38 @@ def play_against_opponent():
     game = Game()
     starting = input("Are you playing first? (Y/n): ")
     if starting == "y" or "":
-        game.starting_player.role = "player"
+        game.starting_player.role = "me"
         game.opponent.role = "opponent"
+        game.starting_player.set_bans(
+            game.connector,
+            [
+                "ice cube",
+                "jackie chan",
+                "jamie lee curtis",
+            ],
+        )
     else:
         game.starting_player.role = "opponent"
-        game.opponent.role = "player"
+        game.opponent.role = "me"
 
-    game.set_initial_movie(input("initial movie: "), int(input("year: ")))
+    game.set_initial_movie(
+        game.connector.get_movie_from_title_and_year(input("initial movie: "), int(input("year: ")))
+    )
 
     while True:
-        if game.turn % 2 == int(game.starting_player.role == "player"):
+        if game.turn % 2 == int(game.starting_player.role == "me"):
             # player turn
             try:
                 next_name, next_year = show_next_choices(game.possible_movies)
             except ValueError:
                 print("No possible movies left.")
                 break
-            next_movie_id = game.connector.get_movie_from_name_and_year(next_name, next_year)
+            next_movie_id = game.connector.get_movie_from_title_and_year(next_name, next_year)
             # Get used links from the database
             used_links_ids = game.connector.get_used_links_from_movies(
                 game.current_movie, next_movie_id
             )
-            if VERBOSE:
+            if VERBOSE >= 1:
                 print(f"Chosen movie id: {next_movie_id}")
                 print(f"Used links ids this turn: {used_links_ids}")
             # update game state
@@ -333,12 +381,12 @@ def play_against_opponent():
             # opponent turn
             next_name = input("opponent's movie: ")
             next_year = int(input("year: "))
-            next_movie_id = game.connector.get_movie_from_name_and_year(next_name, next_year)
+            next_movie_id = game.connector.get_movie_from_title_and_year(next_name, next_year)
             # Get used links from the database
             used_links_ids = game.connector.get_used_links_from_movies(
                 game.current_movie, next_movie_id
             )
-            if VERBOSE:
+            if VERBOSE >= 1:
                 print(f"Chosen movie id: {next_movie_id}")
                 print(f"Used links ids this turn: {used_links_ids}")
             game.play_turn(next_movie_id, used_links_ids)
@@ -348,14 +396,171 @@ def play_against_opponent():
     )
 
 
-# %%
+def online_play():
+    game = Game()
+
+    # capture websocket traffic on the Ethernet interface
+    # where game info is sent
+    capture = pyshark.LiveCapture(
+        interface="Ethernet", display_filter='_ws.col.protocol == "WebSocket"'
+    )
+    for packet in capture.sniff_continuously():
+        # Get the data from the websocket payload
+        rawtext = packet["websocket"].get_field_value("websocket.payload.text")
+        # parse the json in the payload
+        if not rawtext:
+            continue
+        data = re.search(r"^\d+(\[.*\])", rawtext)
+        parsed_data = json.loads(data.group(1)) if data else None
+        if not parsed_data:
+            print(rawtext)
+            continue
+        if VERBOSE >= 2:
+            print(parsed_data)
+            print("-" * 20)
+        # 1st element is a string, 2nd is a dict
+        action: str
+        game_data: dict
+        action, game_data = parsed_data[0], parsed_data[1]
+        # appears after clicking on "find game"
+        # Should set the starting movie
+        if action == "find-match":
+            print("found match")
+            starting_movie_input: str = game_data["startingMovieInput"]
+            if not starting_movie_input:
+                raise ValueError("No starting movie input.")
+            name, year = starting_movie_input.split(" (")
+            year = int(year[:-1])
+            # get initial movie information and set it for the current game
+            starting_movie: Movie = game.connector.get_movie_from_title_and_year(name, year)
+            game.set_initial_movie(starting_movie)
+            if VERBOSE >= 1:
+                print(f"Starting movie: {starting_movie}")
+        elif action == "ready-up":
+            print("ready")
+            # set the player's bans and who plays first according to pdata["playerNumber"]
+            game.starting_player.role = "me"
+            game.starting_player.set_bans(game.connector, game_data["bans"])
+            game.starting_player.username = game_data["username"]
+
+            players_data: dict[str, Any] = game_data["playersData"]
+
+            game.opponent.role = "opponent"
+            game.opponent.set_bans(game.connector, [])
+            # get the key from playersData that is not the starting player's username
+            game.opponent.username = (players_data.keys() - {game.starting_player.username}).pop()
+
+            game.starting_player.player_number = players_data[game.starting_player.username][
+                "playerNumber"
+            ]
+            game.opponent.player_number = players_data[game.opponent.username]["playerNumber"]
+            game.to_play = (
+                game.starting_player if game.starting_player.player_number == 1 else game.opponent
+            )
+            if VERBOSE >= 1:
+                print(f"Starting player: {repr(game.starting_player)}")
+                print(f"Opponent: {repr(game.opponent)}")
+                print(f"To play: {game.to_play.role}")
+            if game.to_play == game.starting_player:
+                # suggest 5 movies to play
+                show_next_choices(game.get_possible_movies_strategy_1())
+
+        elif action == "add-time":
+            if VERBOSE >= 1:
+                print("lifeline used")
+            # Ask if skip was used by opponent
+            # if yes, update game state
+            skip_used = input("Did the opponent use skip? (Y/n): ")
+            if skip_used == "y" or "":
+                game.opponent.use_skip()
+                # suggest 5 movies to play
+                show_next_choices(game.get_possible_movies_strategy_1())
+
+        elif action == "update-game":
+            print("update", game.to_play)
+            # triggered after submitting a movie, or after opponent submits a movie
+            # get who just played a movie to make the distinction: do we need to play a movie
+            # or did we just play and we need to update the game state ?
+            if game.to_play == game.starting_player:
+                if VERBOSE >= 1:
+                    print("We played:")
+                # check if skipped
+                if (
+                    game_data["gameData"]["playersData"][game.starting_player.username][
+                        "lifelines"
+                    ]["skip"]
+                    is False
+                ):
+                    game.starting_player.use_skip()
+
+                # verify that the game says that next player's turn is the opponent
+                assert game_data["gameData"]["playerTurn"] == game.opponent.player_number
+                # get the movie we just played
+                title, year = game_data["newMovie"]["title"].split(" (")
+                year = int(year[:-1])
+                our_movie: Movie = game.connector.get_movie_from_title_and_year(title, year)
+                if VERBOSE >= 1:
+                    print(our_movie)
+
+                # get the links we used
+                used_links_ids = game.connector.get_used_links_from_movies(
+                    game.current_movie, our_movie
+                )
+                # update game state
+                game.play_turn(our_movie, used_links_ids)
+            else:
+                if VERBOSE >= 1:
+                    print("Opponent played:")
+                # check if opponent skipped
+                if (
+                    game_data["gameData"]["playersData"][game.opponent.username]["lifelines"][
+                        "skip"
+                    ]
+                    is False
+                ):
+                    game.opponent.use_skip()
+
+                # verify that the game also says next turn is ours
+                # assert game_data["gameData"]["playerTurn"] == game.starting_player.player_number
+                # get the movie played by the opponent
+                title, year = game_data["newMovie"]["title"].split(" (")
+                year = int(year[:-1])
+                opponent_movie: Movie = game.connector.get_movie_from_title_and_year(title, year)
+                if VERBOSE >= 1:
+                    print(opponent_movie)
+                # get the links used by the opponent
+                used_links_ids = game.connector.get_used_links_from_movies(
+                    game.current_movie, opponent_movie
+                )
+                # update game state
+                game.play_turn(opponent_movie, used_links_ids)
+
+                # suggest 5 movies to play for us
+                show_next_choices(game.get_possible_movies_strategy_1())
+                # once we select a movie, the game will send a new update-game event
+
+        elif action == "game-over":
+            print("game over")
+            # game over
+            # get the winner
+            winner: str = game_data["gameData"]["winner"]  # 1 or 2
+            if VERBOSE >= 1:
+                print(f"{winner=}")
+            if winner == game.starting_player.player_number:
+                print("We won!")
+            elif winner == game.opponent.player_number:
+                print("We lost!")
+            break
+
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
+    # -v is verbose = 1, -vv is verbose = 2
     parser.add_argument("-v", "--verbose", action="store_true")
+    parser.add_argument("-vv", "--very-verbose", action="store_true")
 
     args = parser.parse_args()
 
-    VERBOSE = args.verbose
+    VERBOSE = 1 if args.verbose else 2 if args.very_verbose else 0
 
-    play_loop_single_player()
+    online_play()

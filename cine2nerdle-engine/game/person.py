@@ -12,7 +12,7 @@ class Person:
         return self.name
 
     def __repr__(self):
-        return f"Person({self.id}, {self.name}, {self.popularity})"
+        return str(self)
 
     def __eq__(self, other):
         return self.id == other.id
