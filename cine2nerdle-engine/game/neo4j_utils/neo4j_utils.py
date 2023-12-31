@@ -179,7 +179,7 @@ class GraphDbConnector:
         """
         Gets a movie from its title and release year.
 
-        If more than one movie matches the title, return the first one and show a warning.
+        If more than one movie matches the title, return the closest match and show a warning.
 
         Args:
             tx: neo4j transaction
@@ -193,7 +193,8 @@ class GraphDbConnector:
             MATCH (m:Movie)
             WHERE toLower(m.title) CONTAINS toLower($title)
             AND m.release_year = $year
-            RETURN m ORDER BY m.popularity DESC;
+            WITH m, apoc.text.levenshteinDistance(toLower(m.title), toLower($title)) AS distance
+            RETURN m ORDER BY distance ASC;
             """,
             title=movie_title,
             year=release_date,
@@ -208,7 +209,7 @@ class GraphDbConnector:
             )
         return Movie(**results[0]["m"])
 
-    def get_all_links_from_movie(self, movie: Movie) -> list[Person]:
+    def get_all_links_from_movie(self, movie: Movie) -> set[Person]:
         """
         Get all the person links from a movie.
         Args:
@@ -221,7 +222,7 @@ class GraphDbConnector:
             return session.execute_read(self._get_all_links_from_movie, movie)
 
     @staticmethod
-    def _get_all_links_from_movie(tx, movie: Movie) -> list[Person]:
+    def _get_all_links_from_movie(tx, movie: Movie) -> set[Person]:
         """
         Get all the person links from a movie.
         Args:
@@ -240,26 +241,26 @@ class GraphDbConnector:
             movie_id=movie.id,
         )
 
-        result = [Person(**record["p"]) for record in result.data()]
+        result = {Person(**record["p"]) for record in result.data()}
         if not result:
             raise ValueError(f"No links found for movie {movie}")
 
         return result
 
-    def get_used_links_from_movies(self, current_movie: Movie, next_movie: Movie) -> list[Person]:
+    def get_used_links_from_movies(self, current_movie: Movie, next_movie: Movie) -> set[Person]:
         """
         Get the ids of links that have been used between two movies.
         Args:
             current_movie_id: movie id
             next_movie_id: movie id
         Returns:
-            list of link ids
+            set of Persons
         """
         with self.driver.session() as session:
             return session.execute_read(self._get_used_links_from_movies, current_movie, next_movie)
 
     @staticmethod
-    def _get_used_links_from_movies(tx, current_movie: Movie, next_movie: Movie) -> list[Person]:
+    def _get_used_links_from_movies(tx, current_movie: Movie, next_movie: Movie) -> set[Person]:
         """
         Get the ids of links that have been used between two movies.
         Args:
@@ -267,7 +268,7 @@ class GraphDbConnector:
             current_movie_id: movie id
             next_movie_id: movie id
         Returns:
-            list of link ids
+            set of Persons
         """
         result = tx.run(
             """
@@ -278,10 +279,10 @@ class GraphDbConnector:
             next_movie_id=next_movie.id,
         )
 
-        return [Person(**record["p"]) for record in result.data()]
+        return {Person(**record["p"]) for record in result.data()}
 
-    def get_possible_movies(
-        self, current_movie: Movie, movies_played: list[Movie], usable_links: list[Person]
+    def get_possible_movies_using_links(
+        self, current_movie: Movie, movies_played: set[Movie], usable_links: set[Person]
     ) -> list[Movie]:
         """
         Get the possible movies for the current player.
@@ -297,22 +298,22 @@ class GraphDbConnector:
         """
         with self.driver.session() as session:
             return session.execute_read(
-                self._get_possible_movies, current_movie, movies_played, usable_links
+                self._get_possible_movies_using_links, current_movie, movies_played, usable_links
             )
 
     @staticmethod
-    def _get_possible_movies(
-        tx, current_movie: Movie, movies_played: list[Movie], usable_links: list[Person]
+    def _get_possible_movies_using_links(
+        tx, current_movie: Movie, movies_played: set[Movie], usable_links: set[Person]
     ) -> list[Movie]:
         """
-        Get the possible movies for the current player.
+        Get the possible movies for the current player, ordered by the average popularity of the cast.
         """
         result = tx.run(
             """
             MATCH (m:Movie {id: $movie_id})-[:APPEARED_IN]-(p:Person)-[:APPEARED_IN]-(m2:Movie)
             WHERE NOT m2.id IN $movies_played
             AND p.id IN $usable_links
-            RETURN DISTINCT m2 ORDER BY m2.popularity ASC LIMIT 5;
+            RETURN DISTINCT m2 ORDER BY m2.averageCastPopularity ASC LIMIT 5;
             """,
             movie_id=current_movie.id,
             movies_played=[movie.id for movie in movies_played],
