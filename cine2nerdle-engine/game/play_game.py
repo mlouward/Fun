@@ -30,6 +30,8 @@ class Player:
     def __eq__(self, __value: object) -> bool:
         if not isinstance(__value, Player):
             return False
+        if self.username == "" and __value.username == "":
+            return self.role == __value.role
         return self.username == __value.username
 
     def __str__(self) -> str:
@@ -198,18 +200,35 @@ class Game:
         possible_links: set[Person] = set()
 
         steps: list[set[Person]] = [
+            #  get the links that have been used once AND that we banned
+            {
+                link
+                for link in current_movie_links
+                if link in self.links_count
+                and self.links_count[link] == 1
+                and link in self.main_player.bans
+            },
             #  get the links that have been used twice
             {
                 link
                 for link in current_movie_links
                 if link in self.links_count and self.links_count[link] == 2
             },
-            # else, try to use links that we banned
-            {link for link in current_movie_links if link in self.main_player.bans},
+            # else, try to use links that we banned and have not been used yet
             {
                 link
                 for link in current_movie_links
-                if link not in self.links_count or self.links_count[link] == 0
+                if link in self.main_player.bans and link not in self.links_count
+            },
+            # else, try to use links that have not been used yet
+            {link for link in current_movie_links if link not in self.links_count},
+            # else, get any link used less than 3 times and are banned
+            {
+                link
+                for link in current_movie_links
+                if link in self.links_count
+                and self.links_count[link] < 3
+                and link in self.main_player.bans
             },
             self.get_usable_links(current_movie_links),
         ]
@@ -299,6 +318,7 @@ def show_next_choices(
         print(f"{i+1}. {movie}")
     print(f"{len(movie_choices)+1}. Skip turn")
     print(f"{len(movie_choices)+2}. Play other movie")
+    print(f"{len(movie_choices)+3}. Not my turn to play")
 
     if not choice:
         choice = int(input("Your choice: "))
@@ -310,6 +330,10 @@ def show_next_choices(
         movie_name = input("Movie name: ")
         movie_year = int(input("Movie year: "))
         chosen_movie = game.connector.get_movie_from_title_and_year(movie_name, movie_year)
+    elif choice == len(movie_choices) + 3:
+        # update game state
+        game.to_play = game.opponent if game.to_play == game.main_player else game.main_player
+        return None
     else:
         chosen_movie: Movie = movie_choices[choice - 1]
 
@@ -388,14 +412,14 @@ def play_against_opponent():
     when it is our turn, we have to choose a movie.
     """
     game = Game()
-    starting = input("Are you playing first? (Y/n): ")
-    if starting == "y" or "":
+    starting = input("Are you playing first? (Y/n): ").strip()
+    if starting in ("y", ""):
         game.main_player.set_bans(
             game.connector,
             [
                 "matthew broderick",
                 "rowan atkinson",
-                "jack black",
+                "anya taylor-joy",
             ],
         )
         game.main_player.player_number = 1
@@ -421,7 +445,7 @@ def play_against_opponent():
         if game.to_play == game.main_player:
             # player turn
             try:
-                next_movie = show_next_choices(game, game.possible_movies)
+                next_movie = show_next_choices(game, game.get_possible_movies_strategy_1())
                 if not next_movie:  # we skipped
                     continue
 
@@ -440,10 +464,15 @@ def play_against_opponent():
         else:
             # opponent turn
             next_name = input("opponent's movie: ")
-            next_year = int(input("year: "))
+            next_year = input("year: ")
+            if not next_name and not next_year:
+                # opponent skipped
+                game.use_skip(game.opponent)
+                continue
+
             try:
                 next_movie: Movie | None = game.connector.get_movie_from_title_and_year(
-                    next_name, next_year
+                    next_name, int(next_year)
                 )
             except ValueError:
                 continue  # if no movie found, try again
@@ -727,10 +756,10 @@ def analyze_game_packet_manual(packet: dict, game: Game):
     """
     # Get the data from the websocket payload
     rawtext = packet["websocket"].get_field_value("websocket.payload.text")
-    # parse the json in the payload
     if not rawtext:
         return
     data = re.search(r"^\d+(\[.*\])", rawtext)
+    # parse the json in the payload
     parsed_data = json.loads(data.group(1)) if data else None
     if not parsed_data:
         print(rawtext)
@@ -775,6 +804,10 @@ def analyze_game_packet_manual(packet: dict, game: Game):
             print("We lost!")
         return
 
+    elif action in ("error", "add-time", "opponent-disconnected"):
+        # do nothing
+        return
+
     else:
         if VERBOSE >= 2:
             print(game)
@@ -785,12 +818,14 @@ def analyze_game_packet_manual(packet: dict, game: Game):
             try:
                 next_movie = show_next_choices(game, game.get_possible_movies_strategy_1())
                 if not next_movie:
-                    return  # we used skip
+                    return  # we used skip or not our turn
             except ValueError:
                 print("No possible movies left.")
                 return
             # Get used links from the database
-            used_links = game.connector.get_used_links_from_movies(game.current_movie, next_movie)
+            used_links: set[Person] = game.connector.get_used_links_from_movies(
+                game.current_movie, next_movie
+            )
             if VERBOSE >= 1:
                 print(f"Chosen movie id: {next_movie.id}")
                 print(f"Used links ids this turn: {used_links}")
@@ -798,20 +833,30 @@ def analyze_game_packet_manual(packet: dict, game: Game):
             game.play_turn(next_movie, used_links)
         else:
             # opponent turn
-            next_name = input("opponent's movie: ")
-            next_year = int(input("year: "))
-            try:
-                next_movie_id = game.connector.get_movie_from_title_and_year(next_name, next_year)
-            except ValueError:
-                return  # if no movie found, try again
+            next_movie: Movie | None = None
+            while not next_movie:
+                next_name = input("opponent's movie: ")
+                if next_name == "skip":
+                    # opponent skipped
+                    game.use_skip(game.opponent)
+                    return
+                next_year = input("year: ")
+                if not next_name and not next_year:
+                    # not his turn
+                    return
+                try:
+                    next_movie = game.connector.get_movie_from_title_and_year(
+                        next_name, int(next_year)
+                    )
+                except ValueError as e:
+                    print(e)
+                    continue  # if no movie found, try again
             # Get used links from the database
-            used_links = game.connector.get_used_links_from_movies(
-                game.current_movie, next_movie_id
-            )
+            used_links = game.connector.get_used_links_from_movies(game.current_movie, next_movie)
             if VERBOSE >= 1:
-                print(f"Chosen movie id: {next_movie_id}")
+                print(f"Chosen movie id: {next_movie}")
                 print(f"Used links ids this turn: {used_links}")
-            game.play_turn(next_movie_id, used_links)
+            game.play_turn(next_movie, used_links)
 
 
 def online_play():
@@ -844,4 +889,4 @@ if __name__ == "__main__":
 
     VERBOSE = 1 if args.verbose else 2 if args.very_verbose else 0
 
-    play_against_opponent()
+    online_play_manual()

@@ -145,7 +145,8 @@ class GraphDbConnector:
             """
             MATCH (p:Person)
             WHERE toLower(p.name) CONTAINS toLower($name)
-            RETURN p ORDER BY p.popularity DESC;
+            WITH p, apoc.text.levenshteinDistance(toLower(p.name), toLower($name)) AS distance
+            RETURN p ORDER BY distance ASC;
             """,
             name=name,
         )
@@ -313,7 +314,7 @@ class GraphDbConnector:
             MATCH (m:Movie {id: $movie_id})-[:APPEARED_IN]-(p:Person)-[:APPEARED_IN]-(m2:Movie)
             WHERE NOT m2.id IN $movies_played
             AND p.id IN $usable_links
-            RETURN DISTINCT m2 ORDER BY m2.averageCastPopularity ASC LIMIT 5;
+            RETURN DISTINCT m2 ORDER BY m2.averageCastPopularity DESC LIMIT 5;
             """,
             movie_id=current_movie.id,
             movies_played=[movie.id for movie in movies_played],
