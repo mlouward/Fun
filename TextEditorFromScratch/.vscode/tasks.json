@@ -1,0 +1,13 @@
+{
+    "version": "2.0.0",
+    "tasks": [
+        {
+            "type": "dotnet",
+            "task": "build d:\\Fun\\TextEditorFromScratch\\ConsoleEditor\\ConsoleEditor.csproj",
+            "file": "d:\\Fun\\TextEditorFromScratch\\ConsoleEditor\\ConsoleEditor.csproj",
+            "group": "build",
+            "problemMatcher": [],
+            "label": "dotnet: build d:\\Fun\\TextEditorFromScratch\\ConsoleEditor\\ConsoleEditor.csproj"
+        }
+    ]
+}
