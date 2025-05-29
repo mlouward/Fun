@@ -57,6 +57,9 @@ def get_station_data(station_name: str) -> dict | None:
         else:
             logging.warning(f"No data found for station: {station_name}")
             return None
+    except requests.exceptions.RequestException as e:
+        logging.error(f"Error {e.response.status_code}: {str(e)}")
+        return None
     except Exception as e:
         logging.error(f"Error fetching data for {station_name}: {str(e)}")
         return None
@@ -70,12 +73,25 @@ def process_station_data(station_name: str) -> None:
         / f"{station_name.replace(' - ', '_').replace(' ', '_').replace("'", '').lower()}.parquet"
     )
 
-    # Create a record with timestamp even if the API call fails
+    # Initialize record with all possible fields set to None
     record = {
         "timestamp": timestamp,
         "date": timestamp.date(),
         "time": timestamp.time().strftime("%H:%M:%S"),
         "station_name": station_name,
+        "station_id": None,
+        "station_name_api": None,
+        "mechanical_bikes": None,
+        "ebikes": None,
+        "capacity": None,
+        "docks_available": None,
+        "bikes_available": None,
+        "is_installed": None,
+        "is_renting": None,
+        "is_returning": None,
+        "last_reported": None,
+        "lat": None,
+        "lon": None,
     }
 
     # Fetch data from API
@@ -87,19 +103,19 @@ def process_station_data(station_name: str) -> None:
             {
                 "station_id": fields.get("stationcode"),
                 "station_name_api": fields.get("name"),
-                "mechanical_bikes": fields.get("mechanical", 0),
-                "ebikes": fields.get("ebike", 0),
-                "capacity": fields.get("capacity", 0),
-                "docks_available": fields.get("numdocksavailable", 0),
-                "bikes_available": fields.get("numbikesavailable", 0),
-                "is_installed": fields.get("is_installed", False),
-                "is_renting": fields.get("is_renting", False),
-                "is_returning": fields.get("is_returning", False),
+                "mechanical_bikes": fields.get("mechanical"),
+                "ebikes": fields.get("ebike"),
+                "capacity": fields.get("capacity"),
+                "docks_available": fields.get("numdocksavailable"),
+                "bikes_available": fields.get("numbikesavailable"),
+                "is_installed": fields.get("is_installed"),
+                "is_renting": fields.get("is_renting"),
+                "is_returning": fields.get("is_returning"),
                 "last_reported": fields.get("last_reported"),
-                "lat": fields.get("coordonnees_geo", [0, 0])[0]
+                "lat": fields.get("coordonnees_geo", [None, None])[0]
                 if fields.get("coordonnees_geo")
                 else None,
-                "lon": fields.get("coordonnees_geo", [0, 0])[1]
+                "lon": fields.get("coordonnees_geo", [None, None])[1]
                 if fields.get("coordonnees_geo")
                 else None,
             }
