@@ -68,28 +68,54 @@ def plot_station_availability(station_name: str) -> None:
     # Create the plot
     plt.figure(figsize=(12, 6))
 
-    # Get unique dates and assign colors using the viridis colormap
-    unique_dates = pdf["date"].unique()
-    colors = sns.color_palette("viridis", n_colors=len(unique_dates))
-    date_to_color = dict(zip(unique_dates, colors))
+    # Assign two colors from the Viridis palette for weekdays and weekends
+    viridis_colors = sns.color_palette("viridis", 2)
 
-    # Plot each date separately to ensure proper connections only between actual data points
-    for date in unique_dates:
-        # Filter data for this date
-        date_data = pdf[pdf["date"] == date].sort_values("minutes_since_midnight")
+    # Add a column for weekday/weekend
+    pdf["day_type"] = pdf["date"].apply(lambda d: "Weekday" if pd.to_datetime(d).weekday() < 5 else "Weekend")
 
-        # Format date for legend
-        date_str = pd.to_datetime(date).strftime("%Y-%m-%d")
+    # Group by day_type and minutes_since_midnight, then average
+    grouped = pdf.groupby(["day_type", "minutes_since_midnight"])["bikes_available"].mean().reset_index()
 
-        # Plot with lines and markers
+    # Plot average availability for weekdays and weekends
+    for i, day_type in enumerate(["Weekday", "Weekend"]):
+        day_data = grouped[grouped["day_type"] == day_type].copy()
+        # Plot the original average (with markers)
         plt.plot(
-            date_data["minutes_since_midnight"],
-            date_data["bikes_available"],
+            day_data["minutes_since_midnight"],
+            day_data["bikes_available"],
             "-o",
-            label=date_str,
-            color=date_to_color[date],
+            label=f"{day_type} Avg",
+            color=viridis_colors[i],
             markersize=6,
-            linewidth=1.5,
+            linewidth=2.5,
+        )
+
+        # --- Add moving average trendline (60-minute window) ---
+        window_size = 20
+        # Compute moving average and rolling std
+        day_data_sorted = day_data.sort_values("minutes_since_midnight")
+        ma = day_data_sorted["bikes_available"].rolling(window=window_size, min_periods=1, center=True).mean()
+        std = day_data_sorted["bikes_available"].rolling(window=window_size, min_periods=1, center=True).std()
+        # Smooth the std with another rolling mean
+        std_smooth = std.rolling(window=window_size, min_periods=1, center=True).mean()
+        # Plot the moving average trendline
+        plt.plot(
+            day_data_sorted["minutes_since_midnight"],
+            ma,
+            label=f"{day_type} Trend (20min MA)",
+            color=viridis_colors[i],
+            linewidth=4,
+            alpha=0.5,
+        )
+        # Plot the smoothed rolling std as a shaded area around the trendline
+        plt.fill_between(
+            day_data_sorted["minutes_since_midnight"],
+            ma - 3 * std_smooth,
+            ma + 3 * std_smooth,
+            color=viridis_colors[i],
+            alpha=0.18,
+            label=f"{day_type} ±3 Smoothed Std"
         )
 
     # Set x-axis limits to show from 7:00 to 10:00 (420 to 600 minutes)
@@ -112,18 +138,8 @@ def plot_station_availability(station_name: str) -> None:
     plt.xlabel("Time of Day", fontsize=12)
     plt.ylabel("Number of Bikes Available", fontsize=12)
 
-    # Configure legend - more compact for many days
-    if len(pdf["date"].unique()) > 10:
-        plt.legend(
-            title="Date",
-            fontsize="small",
-            ncol=2,
-            title_fontsize=10,
-            loc="upper center",
-            bbox_to_anchor=(0.5, -0.15),
-        )
-    else:
-        plt.legend(title="Date", title_fontsize=10, loc="best")
+    # Configure legend for weekday/weekend
+    plt.legend(title="Day Type", title_fontsize=10, loc="best")
 
     # Save the plot
     output_filename = (
