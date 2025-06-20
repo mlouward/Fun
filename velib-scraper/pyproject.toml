@@ -1,2 +1,18 @@
+[project]
+name = "velib-scraper"
+version = "0.1.0"
+description = "A script to scrape and visualize Velib station data."
+dependencies = [
+    "polars",
+    "requests",
+    "matplotlib",
+    "seaborn",
+    "pandas",
+    "typer",
+]
+
 [tool.ruff]
-line-length = 120
+line-length = 100
+
+[tool.setuptools]
+py-modules = ["main", "viz"]

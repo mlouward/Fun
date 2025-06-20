@@ -1,11 +1,12 @@
-import argparse
 from pathlib import Path
 from typing import Dict, List, Optional
+from enum import Enum
 
 import matplotlib.pyplot as plt
 import pandas as pd
 import polars as pl
 import seaborn as sns
+import typer
 from matplotlib.axes import Axes
 
 # --- Constants and Setup ---
@@ -27,6 +28,12 @@ STATION_TO_FILENAME: Dict[str, str] = {
     station: station.replace(" - ", "_").replace(" ", "_").replace("'", "").lower() + ".parquet"
     for station in TARGET_STATIONS
 }
+
+app = typer.Typer()
+
+class PlotMode(str, Enum):
+    average = "average"
+    stacked = "stacked"
 
 
 def get_station_data(station_name: str) -> Optional[pl.DataFrame]:
@@ -147,36 +154,24 @@ def plot_station_visual(station_name: str, mode: str, save_to_file: bool) -> Non
         plt.show()
 
 
-def parse_args() -> argparse.Namespace:
-    """Parses command-line arguments."""
-    parser = argparse.ArgumentParser(description="Visualize Velib station data.")
-    parser.add_argument(
-        "-s",
-        "--save-to-file",
-        action="store_true",
-        help="Save plots to file instead of displaying them.",
-    )
-    parser.add_argument(
-        "--mode",
-        type=str,
-        required=True,
-        choices=["average", "stacked"],
-        help="'average' to show avg daily availability, 'stacked' to show all daily data.",
-    )
-    return parser.parse_args()
-
-
-def main() -> None:
+@app.command()
+def main(
+    mode: PlotMode = typer.Argument(
+        ..., help="'average' to show avg daily availability, 'stacked' to show all daily data."
+    ),
+    save_to_file: bool = typer.Option(
+        False, "-s", "--save-to-file", help="Save plots to file instead of displaying them."
+    ),
+) -> None:
     """Main function to run the visualization script."""
-    args = parse_args()
     print("Starting Velib data visualization...")
 
     for station in TARGET_STATIONS:
         print(f"Processing station: {station}")
-        plot_station_visual(station, mode=args.mode, save_to_file=args.save_to_file)
+        plot_station_visual(station, mode=mode.value, save_to_file=save_to_file)
 
     print("Visualization complete!")
 
 
 if __name__ == "__main__":
-    main()
+    app()

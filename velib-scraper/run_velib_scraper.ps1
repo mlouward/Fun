@@ -14,7 +14,7 @@ try {
     Write-Host "Requirements are already installed."
 } catch {
     Write-Host "Installing requirements..."
-    pip install -r requirements.txt
+    python -m pip install -e .
 }
 
 # Run the Python script
