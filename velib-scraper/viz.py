@@ -24,8 +24,7 @@ TARGET_STATIONS: List[str] = [
 ]
 
 STATION_TO_FILENAME: Dict[str, str] = {
-    station: station.replace(" - ", "_").replace(" ", "_").replace("'", "").lower()
-    + ".parquet"
+    station: station.replace(" - ", "_").replace(" ", "_").replace("'", "").lower() + ".parquet"
     for station in TARGET_STATIONS
 }
 
@@ -55,20 +54,14 @@ def preprocess_data(df: pl.DataFrame) -> pd.DataFrame:
 
     pdf = processed_df.to_pandas()
     pdf["minutes_since_midnight"] = pdf["time"].apply(lambda t: t.hour * 60 + t.minute)
-    pdf["day_type"] = pdf["date"].apply(
-        lambda d: "Weekday" if pd.to_datetime(d).weekday() < 5 else "Weekend"
-    )
+    pdf["day_type"] = pdf["date"].apply(lambda d: "Weekday" if pd.to_datetime(d).weekday() < 5 else "Weekend")
     return pdf
 
 
 def plot_average_mode(ax: Axes, data: pd.DataFrame) -> None:
     """Plots the average bike availability for weekdays and weekends."""
     viridis_colors = sns.color_palette("viridis", 2)
-    grouped = (
-        data.groupby(["day_type", "minutes_since_midnight"])["bikes_available"]
-        .mean()
-        .reset_index()
-    )
+    grouped = data.groupby(["day_type", "minutes_since_midnight"])["bikes_available"].mean().reset_index()
 
     for i, day_type in enumerate(["Weekday", "Weekend"]):
         day_data = grouped[grouped["day_type"] == day_type].copy()
@@ -85,11 +78,7 @@ def plot_average_mode(ax: Axes, data: pd.DataFrame) -> None:
         # Add moving average trendline
         window_size = 20
         day_data_sorted = day_data.sort_values("minutes_since_midnight")
-        ma = (
-            day_data_sorted["bikes_available"]
-            .rolling(window=window_size, min_periods=1, center=True)
-            .mean()
-        )
+        ma = day_data_sorted["bikes_available"].rolling(window=window_size, min_periods=1, center=True).mean()
         ax.plot(
             day_data_sorted["minutes_since_midnight"],
             ma,
@@ -120,9 +109,7 @@ def configure_plot_aesthetics(ax: Axes, station_name: str) -> None:
     """Configures the aesthetics of the plot (labels, title, ticks)."""
     ax.set_xlim(410, 610)
     tick_positions = range(420, 601, 30)
-    tick_labels = [
-        f"{h:02d}:{m:02d}" for h in range(7, 11) for m in [0, 30] if h < 10 or m == 0
-    ]
+    tick_labels = [f"{h:02d}:{m:02d}" for h in range(7, 11) for m in [0, 30] if h < 10 or m == 0]
     ax.set_xticks(tick_positions)
     ax.set_xticklabels(tick_labels, rotation=45)
     ax.grid(True, axis="x", linestyle="--", alpha=0.7)

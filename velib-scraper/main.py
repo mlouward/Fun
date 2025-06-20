@@ -69,8 +69,7 @@ def process_station_data(station_name: str) -> None:
     """Process data for a specific station and save to parquet"""
     timestamp = datetime.now()
     parquet_file = (
-        PARQUET_DIR
-        / f"{station_name.replace(' - ', '_').replace(' ', '_').replace("'", '').lower()}.parquet"
+        PARQUET_DIR / f"{station_name.replace(' - ', '_').replace(' ', '_').replace("'", '').lower()}.parquet"
     )
 
     # Initialize record with all possible fields set to None
@@ -112,12 +111,8 @@ def process_station_data(station_name: str) -> None:
                 "is_renting": fields.get("is_renting"),
                 "is_returning": fields.get("is_returning"),
                 "last_reported": fields.get("last_reported"),
-                "lat": fields.get("coordonnees_geo", [None, None])[0]
-                if fields.get("coordonnees_geo")
-                else None,
-                "lon": fields.get("coordonnees_geo", [None, None])[1]
-                if fields.get("coordonnees_geo")
-                else None,
+                "lat": fields.get("coordonnees_geo", [None, None])[0] if fields.get("coordonnees_geo") else None,
+                "lon": fields.get("coordonnees_geo", [None, None])[1] if fields.get("coordonnees_geo") else None,
             }
         )
 
@@ -130,9 +125,7 @@ def process_station_data(station_name: str) -> None:
             df_existing = pl.read_parquet(parquet_file)
             df = pl.concat([df_existing, df_new])
         except Exception as e:
-            logging.error(
-                f"Error reading existing parquet file for {station_name}: {str(e)}"
-            )
+            logging.error(f"Error reading existing parquet file for {station_name}: {str(e)}")
             df = df_new
     else:
         df = df_new
@@ -150,9 +143,7 @@ def main():
     # Only run between 7am and 10am
     in_range, now = is_time_in_range()
     if not in_range:
-        print(
-            f"Current time {now.strftime('%H:%M:%S')} is outside the 7am-10am timeframe. Exiting."
-        )
+        print(f"Current time {now.strftime('%H:%M:%S')} is outside the 7am-10am timeframe. Exiting.")
         return
 
     print(f"Starting Velib data collection at {now}")

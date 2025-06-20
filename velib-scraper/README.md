@@ -44,6 +44,45 @@ python -m venv .
 
 Data is stored in the `data` directory as parquet files, one for each station.
 
+## Visualization
+
+The `viz.py` script allows you to visualize the collected data. It offers several command-line options to customize the plots.
+
+### Usage
+
+To run the visualization script, use the following command structure:
+
+```bash
+python viz.py --mode <MODE> [OPTIONS]
+```
+
+### Arguments
+
+- `--mode {average,stacked}`: (Required) Defines the type of plot to generate.
+  - `average`: Shows the average bike availability, separating weekdays and weekends. It also includes a smoothed trendline.
+  - `stacked`: Plots the availability for each individual day on the same graph to show daily variations.
+- `-s`, `--save-to-file`: (Optional) Saves the plots as PNG files in the `plots/` directory. If this flag is not provided, the plots will be displayed on-screen directly.
+
+### Examples
+
+**1. Show the average availability plots for each station:**
+
+```bash
+python viz.py --mode average
+```
+
+**2. Show the "stacked" plots with all daily data:**
+
+```bash
+python viz.py --mode stacked
+```
+
+**3. Save the average availability plots to the `plots/` directory:**
+
+```bash
+python viz.py --mode average -s
+```
+
 ## Logs
 
 Errors are logged to `logs/velib_errors.log`.
