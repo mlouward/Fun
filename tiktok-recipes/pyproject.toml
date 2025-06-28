@@ -1,0 +1,66 @@
+[project]
+name = "tiktok-recipes"
+version = "0.1.0"
+description = "TikTok audio extractor and recipe processing tools."
+readme = "README.md"
+authors = ["Maxime Louward <mlouward@gmail.com>"]
+requires-python = ">=3.13"
+dependencies = [
+    "ruff",
+    "isort",
+    "ty",
+    "yt-dlp",
+    "transformers",
+    "accelerate",
+    "pillow>=11.2.1",
+    "torchvision>=0.22.1",
+    "pysoundfile>=0.9.0.post1",
+    "torchaudio>=2.7.1",
+    "openai-whisper>=20250625",
+    "fastapi",
+    "uvicorn[standard]",
+    "python-multipart",
+]
+
+[tool.ruff]
+target-version = "py313"
+line-length = 100
+exclude = [
+    ".bzr",
+    ".direnv",
+    ".eggs",
+    ".git",
+    ".git-rewrite",
+    ".hg",
+    ".ipynb_checkpoints",
+    ".mypy_cache",
+    ".nox",
+    ".pants.d",
+    ".pyenv",
+    ".pytest_cache",
+    ".pytype",
+    ".ruff_cache",
+    ".svn",
+    ".tox",
+    ".venv",
+    ".vscode",
+    "__pypackages__",
+    "_build",
+    "buck-out",
+    "build",
+    "dist",
+    "node_modules",
+    "site-packages",
+    "venv",
+]
+
+[tool.ruff.format]
+quote-style = "double"
+indent-style = "tab"
+skip-magic-trailing-comma = false
+line-ending = "auto"
+
+[tool.ruff.lint]
+fixable = ["ALL"]
+select = ["E4", "E7", "E9", "F"]
+ignore = ["E501"]

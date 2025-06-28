@@ -1,0 +1,50 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Paprika Recipe Schema",
+  "type": "object",
+  "properties": {
+    "name": {
+      "type": "string",
+      "description": "The title of the recipe."
+    },
+    "directions": {
+      "type": "string",
+      "description": "The step-by-step cooking instructions, with each step on a new line, e.g., '1. Mix the flour and eggs.\\n2. Bake for 30 minutes.'."
+    },
+    "ingredients": {
+      "type": "string",
+      "description": "A list of all ingredients, with each ingredient on a new line. Include quantities and units, e.g., '1 cup of flour\\n2 eggs'."
+    },
+    "servings": {
+      "type": "string",
+      "description": "The number of servings the recipe makes, e.g., '4 people' or '2 servings'."
+    },
+    "difficulty": {
+      "type": "string",
+      "description": "The difficulty level, e.g., 'Easy', 'Medium', or 'Hard'."
+    },
+    "notes": {
+      "type": "string",
+      "description": "Any additional notes, tips, or variations for the recipe."
+    },
+    "cook_time": {
+      "type": "string",
+      "description": "The cooking time, e.g., '30 minutes'."
+    },
+    "prep_time": {
+      "type": "string",
+      "description": "The preparation time, e.g., '15 minutes'."
+    }
+  },
+  "required": [
+    "name",
+    "directions",
+    "ingredients",
+    "servings",
+    "difficulty",
+    "notes",
+    "cook_time",
+    "prep_time"
+  ]
+}
+
