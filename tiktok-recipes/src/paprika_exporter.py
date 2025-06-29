@@ -4,6 +4,11 @@ import urllib.parse
 from datetime import datetime
 from pathlib import Path
 
+from rich.console import Console
+from rich.panel import Panel
+
+console = Console()
+
 
 def format_for_paprika(recipe_dict: dict, source_url: str = "") -> Path:
     """
@@ -16,6 +21,7 @@ def format_for_paprika(recipe_dict: dict, source_url: str = "") -> Path:
     Returns:
         Path: The path to the saved JSON file.
     """
+    console.rule("[bold blue]Paprika Export")
     output_dir = Path("data")
     output_dir.mkdir(exist_ok=True)
 
@@ -57,10 +63,14 @@ def format_for_paprika(recipe_dict: dict, source_url: str = "") -> Path:
 
     # Save to a JSON file
     file_path = output_dir / uid
-    with open(file_path, "w") as f:
-        json.dump(final_recipe, f, indent=4)
+    try:
+        with open(file_path, "w") as f:
+            json.dump(final_recipe, f, indent=4)
+        console.print(Panel(f"Recipe saved to {file_path}", style="green"))
+    except Exception as e:
+        console.print(Panel(f"[bold red]Failed to save recipe:[/bold red] {e}", style="red"))
+        raise
 
-    print(f"Recipe saved to {file_path}")
     return file_path
 
 
@@ -87,4 +97,6 @@ if __name__ == "__main__":
     )
 
     if saved_file.exists():
-        print(f"\n✅ Success! Paprika-formatted recipe saved at: {saved_file}")
+        console.print(
+            f"\n[bold green]✅ Success! Paprika-formatted recipe saved at: {saved_file}[/bold green]"
+        )

@@ -138,6 +138,11 @@ pre {
     margin: 1rem auto 0;
 }
 
+#export-paprika-file-button {
+    display: block;
+    margin: 1rem auto 0;
+}
+
 .hidden {
     display: none;
 }

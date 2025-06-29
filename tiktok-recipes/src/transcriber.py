@@ -2,12 +2,18 @@ from pathlib import Path
 
 import torch
 import whisper
+from rich.console import Console
+from rich.panel import Panel
+
+console = Console()
 
 try:
-    print("Loading Whisper model...")
+    console.rule("[bold blue]Whisper Model Loading")
+    console.print("[yellow]Loading Whisper model...[/yellow]")
     model = whisper.load_model("small")
+    console.print("[green]Whisper model loaded successfully.[/green]")
 except Exception as e:
-    print(f"Error loading model: {e}")
+    console.print(f"[bold red]Error loading model:[/bold red] {e}")
     model = None
 
 
@@ -21,21 +27,25 @@ def transcribe_audio(audio_path: Path) -> str:
     Returns:
         str: The transcribed text.
     """
+    console.rule("[bold blue]Audio Transcription")
     if not model:
-        print("Model not loaded. Cannot transcribe audio.")
+        console.print("[bold red]Model not loaded. Cannot transcribe audio.[/bold red]")
         return ""
     try:
         if torch.cuda.is_available():
-            whisper = model.to(torch.device("cuda")).float()
-        print(f"Transcribing audio file: {audio_path}")
+            whisper_model = model.to(torch.device("cuda")).float()
+        else:
+            whisper_model = model
+        console.print(f"[cyan]Transcribing audio file:[/cyan] {audio_path}")
         # Force transcription in float32 to avoid NaN errors on some GPUs
-        result = whisper.transcribe(str(audio_path), fp16=False)
+        result = whisper_model.transcribe(str(audio_path), fp16=False)
         transcribed_text = result["text"]
-        print("Transcription successful.")
-        print(transcribed_text)
+        console.print(Panel("[green]Transcription successful.[/green]", style="green"))
+        # Optionally print the transcription
+        console.print(transcribed_text)
         return transcribed_text  # type: ignore
     except Exception as e:
-        print(f"An error occurred during transcription: {e}")
+        console.print(f"[bold red]An error occurred during transcription:[/bold red] {e}")
         return ""
 
 
@@ -49,5 +59,5 @@ if __name__ == "__main__":
     test_audio_file = script_dir.parent / "audio_files" / "7474287630218284310.mp3"
     transcription = transcribe_audio(test_audio_file)
     if transcription:
-        print("\n--- Transcription ---")
-        print(transcription)
+        console.print("\n[bold green]--- Transcription ---[/bold green]")
+        console.print(transcription)

@@ -6,6 +6,9 @@ document.addEventListener("DOMContentLoaded", () => {
     const resultsContainer = document.getElementById("results-container");
     const recipeOutput = document.getElementById("recipe-output");
     const copyButton = document.getElementById("copy-button");
+    const exportPaprikaFileButton = document.getElementById(
+        "export-paprika-file-button"
+    );
 
     form.addEventListener("submit", async (e) => {
         e.preventDefault();
@@ -61,5 +64,47 @@ document.addEventListener("DOMContentLoaded", () => {
             .catch((err) => {
                 console.error("Failed to copy text: ", err);
             });
+    });
+
+    exportPaprikaFileButton.addEventListener("click", async () => {
+        try {
+            const recipeJson = recipeOutput.textContent;
+            if (!recipeJson) {
+                alert("No recipe to export!");
+                return;
+            }
+            const response = await fetch("/export-paprika-file/", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                    Accept: "application/octet-stream",
+                },
+                body: recipeJson,
+            });
+            if (!response.ok) {
+                throw new Error("Failed to export Paprika file.");
+            }
+            // Try to extract filename from Content-Disposition header
+            let filename = "recipe";
+            const disposition = response.headers.get("Content-Disposition");
+            if (disposition) {
+                const match = disposition.match(/filename=([^;]+)/);
+                if (match && match[1]) {
+                    filename = match[1].replace(/\"/g, "").trim();
+                }
+            }
+            const blob = await response.blob();
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement("a");
+            console.log("Exporting to Paprika file:", filename);
+            a.href = url;
+            a.download = filename;
+            document.body.appendChild(a);
+            a.click();
+            a.remove();
+            window.URL.revokeObjectURL(url);
+        } catch (err) {
+            alert("Export failed: " + err.message);
+        }
     });
 });

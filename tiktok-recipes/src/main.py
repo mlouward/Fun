@@ -1,19 +1,26 @@
 import asyncio
+import gzip
+import io
 import json
 import os
+import re
 import sys
 from pathlib import Path
 from typing import Any
 
 from fastapi import Body, FastAPI, HTTPException, Request
-from fastapi.responses import HTMLResponse
+from fastapi.responses import HTMLResponse, StreamingResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 from pydantic import BaseModel, HttpUrl
+from rich.console import Console
+from rich.panel import Panel
+from unidecode import unidecode
 
 # Import our backend modules
 from .audio_extractor import download_audio_from_tiktok
 from .nlp_processor import extract_recipe_info
+from .paprika_api import PaprikaAPI
 from .paprika_exporter import format_for_paprika, get_data_filename
 from .tiktok_description import get_tiktok_video_description
 from .transcriber import transcribe_audio
@@ -37,6 +44,7 @@ data_dir = script_dir.parent / "data"
 
 app.mount("/static", StaticFiles(directory=static_dir), name="static")
 templates = Jinja2Templates(directory=templates_dir)
+console = Console()
 
 
 class ProcessRequest(BaseModel):
@@ -66,56 +74,66 @@ async def process_tiktok_url(request: ProcessRequest = Body(...)) -> dict[str, A
         # Check if the data already exists
         output_path = data_dir / get_data_filename(str(request.url))
         if output_path.exists():
+            console.rule("[bold blue]Paprika JSON Already Exists")
             with open(output_path, "r") as f:
+                console.print("[yellow]Returning cached recipe.[/yellow]")
                 return format_answer(json.load(f))
 
         # 1. Download Audio
-        print(f"Processing URL: {request.url}")
+        console.rule("[bold blue]Step 1: Download Audio")
+        console.print(f"[cyan]Processing URL:[/cyan] {request.url}")
         audio_path = download_audio_from_tiktok(str(request.url))
-        print(f"Audio downloaded to: {audio_path}")
         if not audio_path:
+            console.print(Panel("[bold red]Audio download failed.[/bold red]", style="red"))
             raise HTTPException(
                 status_code=500,
                 detail="Audio download failed. The video may be invalid or the URL may be incorrect.",
             )
 
         # 2. Transcribe Audio
+        console.rule("[bold blue]Step 2: Transcribe Audio")
         transcript = transcribe_audio(audio_path)
         if not transcript:
+            console.print(Panel("[bold red]Transcription failed.[/bold red]", style="red"))
             raise HTTPException(
                 status_code=500, detail="Transcription failed. The audio may be silent or invalid."
             )
-        print("Transcription successful.")
 
         # 3. Fetch TikTok video description
+        console.rule("[bold blue]Step 3: Fetch TikTok Description")
         description = await get_tiktok_video_description(str(request.url))
-        if description:
-            print(f"Fetched TikTok description: {description}")
-        else:
-            print("No TikTok description found or failed to fetch.")
 
         # 4. Combine transcript and description as context
+        console.rule("[bold blue]Step 4: Combine Context")
         if description:
             context = f"Description: {description}\nTranscript: {transcript}"
         else:
             context = transcript
 
         # 5. Extract Recipe Info
+        console.rule("[bold blue]Step 5: NLP Extraction")
         recipe_info = extract_recipe_info(context)
         if not recipe_info:
+            console.print(
+                Panel("[bold red]Failed to extract recipe information.[/bold red]", style="red")
+            )
             raise HTTPException(
                 status_code=500,
                 detail="Failed to extract recipe information from the transcript and description.",
             )
-        print("Recipe info extracted.")
+        console.print(Panel("[green]Recipe info extracted.[/green]", style="green"))
 
         # 6. Format for Paprika and get the file path
+        console.rule("[bold blue]Step 6: Format for Paprika")
         recipe_file_path = format_for_paprika(recipe_info, source_url=str(request.url))
-        print(f"Recipe saved to: {recipe_file_path}")
+        console.print(f"[green]Recipe saved to:[/green] {recipe_file_path}")
 
         # Clean up the downloaded audio file
-        os.remove(audio_path)
-        print(f"Cleaned up audio file: {audio_path}")
+        try:
+            os.remove(audio_path)
+            console.print(f"[yellow]Cleaned up audio file:[/yellow] {audio_path}")
+        except Exception as e:
+            console.print(f"[red]Warning: Failed to remove audio file: {e}[/red]")
 
         # Return the content of the generated JSON file
         with open(recipe_file_path, "r") as f:
@@ -125,10 +143,75 @@ async def process_tiktok_url(request: ProcessRequest = Body(...)) -> dict[str, A
 
     except Exception as e:
         # Log the full error for debugging
-        print(f"An unexpected error occurred: {e}")
+        console.print(Panel(f"[bold red]An unexpected error occurred:[/bold red] {e}", style="red"))
         # Return a generic error to the client
         raise HTTPException(status_code=500, detail=f"An internal server error occurred: {e}")
 
 
 def format_answer(recipe_json: dict[str, Any]) -> dict[str, Any]:
     return {"message": "Recipe processed successfully!", "recipe": recipe_json}
+
+
+class PaprikaUploadRequest(BaseModel):
+    email: str
+    password: str
+    url: HttpUrl
+
+
+@app.post("/upload-to-paprika/", tags=["Paprika Integration"])
+async def upload_to_paprika(request: PaprikaUploadRequest = Body(...)) -> dict[str, Any]:
+    """
+    Uploads a processed recipe to the user's Paprika account.
+    """
+    try:
+        # Find the recipe file
+        output_path = data_dir / get_data_filename(str(request.url))
+        if not output_path.exists():
+            raise HTTPException(
+                status_code=404, detail="Recipe not found. Please process the URL first."
+            )
+        with open(output_path, "r") as f:
+            recipe = json.load(f)
+        # Login and upload
+        api = PaprikaAPI(request.email, request.password)
+        token = api.login()
+        if not token:
+            raise HTTPException(status_code=401, detail="Paprika login failed. Check credentials.")
+        success = api.upload_recipe(recipe)
+        if not success:
+            raise HTTPException(status_code=500, detail="Failed to upload recipe to Paprika.")
+        return {"message": "Recipe uploaded to Paprika successfully!"}
+    except Exception as e:
+        console.print(Panel(f"[bold red]Paprika upload error:[/bold red] {e}", style="red"))
+        raise HTTPException(status_code=500, detail=f"Paprika upload error: {e}")
+
+
+def normalize_filename(name: str) -> str:
+    name_ascii = unidecode(name)
+    name_ascii = name_ascii.lower()
+    name_ascii = re.sub(r"[^a-z0-9]+", "-", name_ascii)
+    name_ascii = name_ascii.strip("-")
+    return name_ascii or "recipe"
+
+
+@app.post("/export-paprika-file/", response_class=StreamingResponse, tags=["Paprika Integration"])
+async def export_paprika_file(request: Request):
+    """
+    Accepts a recipe JSON and returns a .paprikarecipe (gzipped JSON) file.
+    The filename is based on the recipe's 'name' field, normalized.
+    """
+    try:
+        recipe_json = await request.body()
+        recipe_dict = json.loads(recipe_json)
+        # Get and normalize the name
+        name = recipe_dict.get("name", "recipe")
+        console.print(f"[cyan]Exporting recipe: {name}[/cyan]")
+        filename = f"{normalize_filename(name)}.paprikarecipe"
+        gzipped = gzip.compress(recipe_json)
+        return StreamingResponse(
+            io.BytesIO(gzipped),
+            media_type="application/octet-stream",
+            headers={"Content-Disposition": f"attachment; filename={filename}"},
+        )
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to export Paprika file: {e}")

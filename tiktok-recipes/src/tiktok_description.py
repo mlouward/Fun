@@ -2,7 +2,10 @@ import asyncio
 import os
 from typing import Optional
 
+from rich.console import Console
 from TikTokApi import TikTokApi
+
+console = Console()
 
 
 async def get_tiktok_video_description(url: str, ms_token: Optional[str] = None) -> Optional[str]:
@@ -16,6 +19,7 @@ async def get_tiktok_video_description(url: str, ms_token: Optional[str] = None)
     Returns:
         Optional[str]: The video description, or None if fetching fails.
     """
+    console.rule("[bold blue]TikTok Description Fetch")
     ms_token = ms_token or os.environ.get("ms_token")
     try:
         async with TikTokApi() as api:
@@ -27,9 +31,14 @@ async def get_tiktok_video_description(url: str, ms_token: Optional[str] = None)
             )
             video = api.video(url=url)
             video_info = await video.info()
-            return video_info.get("desc")
+            desc = video_info.get("desc")
+            if desc:
+                console.print(f"[green]Fetched TikTok description:[/green] {desc}")
+            else:
+                console.print("[yellow]No description found for this video.[/yellow]")
+            return desc
     except Exception as e:
-        print(f"Failed to fetch TikTok description: {e}")
+        console.print(f"[bold red]Failed to fetch TikTok description:[/bold red] {e}")
         return None
 
 
@@ -43,4 +52,4 @@ if __name__ == "__main__":
         else "https://www.tiktok.com/@amysheppardfood/video/7474287630218284310?lang=fr"
     )
     desc = asyncio.run(get_tiktok_video_description(url))
-    print(f"Description: {desc}")
+    console.print(f"Description: {desc}")

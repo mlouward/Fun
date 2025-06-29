@@ -2,13 +2,18 @@ import json
 from pathlib import Path
 
 import torch
+from rich.console import Console
+from rich.panel import Panel
 from transformers import AutoModelForVision2Seq, AutoProcessor
+
+console = Console()
 
 # --- Model and Processor Loading ---
 MODEL_ID = "numind/NuExtract-2.0-2B"
 
 try:
-    print(f"Loading model: {MODEL_ID}")
+    console.rule("[bold blue]NLP Model Loading")
+    console.print(f"[yellow]Loading model:[/yellow] {MODEL_ID}")
     model = AutoModelForVision2Seq.from_pretrained(
         MODEL_ID,
         trust_remote_code=True,
@@ -18,9 +23,9 @@ try:
     processor = AutoProcessor.from_pretrained(
         MODEL_ID, trust_remote_code=True, padding_side="left", use_fast=True
     )
-    print("Model and processor loaded successfully.")
+    console.print("[green]Model and processor loaded successfully.[/green]")
 except Exception as e:
-    print(f"Error loading model: {e}")
+    console.print(f"[bold red]Error loading model:[/bold red] {e}")
     model = None
     processor = None
 
@@ -35,8 +40,9 @@ def extract_recipe_info(transcript: str) -> dict:
     Returns:
         dict: A structured dictionary containing the extracted recipe information.
     """
+    console.rule("[bold blue]NLP Extraction")
     if not model or not processor:
-        print("Model not loaded. Cannot process transcript.")
+        console.print("[bold red]Model not loaded. Cannot process transcript.[/bold red]")
         return {}
 
     # Load the JSON schema to use as a template
@@ -79,23 +85,24 @@ def extract_recipe_info(transcript: str) -> dict:
         add_generation_prompt=True,
         tokenize=False,
     )
+    console.print("[cyan]Prompt constructed for model inference.[/cyan]")
     inputs = processor(text=[prompt], padding=True, return_tensors="pt").to(model.device)
 
     output_ids = model.generate(**inputs, max_new_tokens=2048, do_sample=False, num_beams=1)
     output_ids_trimmed = [
         out_ids[len(in_ids) :] for in_ids, out_ids in zip(inputs.input_ids, output_ids)
     ]
-    print(f"Number of new tokens: {len(output_ids_trimmed[0])}")
+    console.print(f"[yellow]Number of new tokens:[/yellow] {len(output_ids_trimmed[0])}")
     # Decode and parse the output
     response = processor.batch_decode(output_ids_trimmed, skip_special_tokens=True)[0]
 
     try:
         # Print the raw model output for debugging
-        print(f"Raw model output:\n{response}")
+        console.print(Panel(f"Raw model output:\n{response}", style="magenta"))
         recipe_info = json.loads(response)
         return recipe_info
     except (IndexError, json.JSONDecodeError) as e:
-        print(f"Error parsing JSON from model output: {e}")
+        console.print(f"[bold red]Error parsing JSON from model output:[/bold red] {e}")
         return {}
 
 
@@ -108,12 +115,11 @@ if __name__ == "__main__":
         "Add the lemon zests and mix well. Then, add the butter and mix until the butter is melted. "
         "Bake it for about 30 minutes at 200C. Let it cool and enjoy! It serves 8 people."""
 
-    print("--- Running Test Extraction with NuExtract 2.0 ---")
     recipe_info = extract_recipe_info(test_transcript)
 
     if recipe_info:
-        print("\n--- Extracted Recipe Info ---")
-        print(json.dumps(recipe_info, indent=2))
-        print("\n✅ Success! NLP processor test complete.")
+        console.print("\n[bold green]--- Extracted Recipe Info ---[/bold green]")
+        console.print(json.dumps(recipe_info, indent=2))
+        console.print("\n[bold green]✅ Success! NLP processor test complete.[/bold green]")
     else:
-        print("\n❌ Failure. Could not extract recipe info.")
+        console.print("\n[bold red]❌ Failure. Could not extract recipe info.[/bold red]")
