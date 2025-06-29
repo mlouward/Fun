@@ -74,7 +74,7 @@ tiktok-recipes/
 ### Phase 3: Paprika Integration
 
 1. **Paprika API Client**:
-    * In `src/paprika_exporter.py`, add functionality to communicate with the Paprika API, using the provided Gist for reference.
+    * In `src/paprika_exporter.py`, add functionality to communicate with the Paprika API, using the provided Gist or GitLab project for reference.
     * Handle user authentication securely.
 
 2. **Upload Functionality**:

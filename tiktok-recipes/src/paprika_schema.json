@@ -23,10 +23,6 @@
       "type": "string",
       "description": "The difficulty level, e.g., 'Easy', 'Medium', or 'Hard'."
     },
-    "notes": {
-      "type": "string",
-      "description": "Any additional notes, tips, or variations for the recipe."
-    },
     "cook_time": {
       "type": "string",
       "description": "The cooking time, e.g., '30 minutes'."
@@ -47,4 +43,3 @@
     "prep_time"
   ]
 }
-

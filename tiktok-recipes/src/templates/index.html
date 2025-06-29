@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>TikTok Recipe Extractor</title>
+        <link rel="preconnect" href="https://fonts.googleapis.com" />
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+        <link
+            href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap"
+            rel="stylesheet"
+        />
+        <link rel="stylesheet" href="/static/css/style.css" />
+    </head>
+    <body>
+        <div class="container">
+            <header>
+                <h1>TikTok Recipe Extractor</h1>
+                <p>
+                    Paste a TikTok video URL below to instantly get the recipe,
+                    ready for your kitchen.
+                </p>
+            </header>
+
+            <main>
+                <form id="recipe-form">
+                    <input
+                        type="url"
+                        id="tiktok-url"
+                        placeholder="https://www.tiktok.com/..."
+                        required
+                    />
+                    <button type="submit">Get Recipe</button>
+                </form>
+
+                <div id="loading-spinner" class="hidden"></div>
+
+                <div id="error-message" class="hidden"></div>
+
+                <div id="results-container" class="hidden">
+                    <h2>Your Recipe is Ready!</h2>
+                    <pre><code id="recipe-output"></code></pre>
+                    <button id="copy-button">Copy to Clipboard</button>
+                </div>
+            </main>
+        </div>
+
+        <script src="/static/js/main.js"></script>
+    </body>
+</html>
