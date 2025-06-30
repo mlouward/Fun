@@ -72,7 +72,7 @@ async def process_tiktok_url(request: ProcessRequest = Body(...)) -> dict[str, A
     """
     try:
         # Check if the data already exists
-        output_path = data_dir / PaprikaRecipe._get_data_filename(str(request.url))
+        output_path = data_dir / PaprikaRecipe.get_data_filename(str(request.url))
         if output_path.exists():
             console.rule("[bold blue]Paprika JSON Already Exists")
             paprika_recipe = PaprikaRecipe.from_file(output_path)
@@ -166,7 +166,7 @@ async def upload_to_paprika(request: PaprikaUploadRequest = Body(...)) -> dict[s
     """
     try:
         # Find the recipe file
-        output_path = data_dir / PaprikaRecipe._get_data_filename(str(request.url))
+        output_path = data_dir / PaprikaRecipe.get_data_filename(str(request.url))
         if not output_path.exists():
             raise HTTPException(
                 status_code=404, detail="Recipe not found. Please process the URL first."

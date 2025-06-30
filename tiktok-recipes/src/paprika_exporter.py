@@ -91,9 +91,6 @@ class PaprikaRecipe:
                 photo_data = None
         return cls(data, source_url=source_url, photo_data=photo_data)
 
-    # For backward compatibility, alias _get_data_filename to get_data_filename
-    _get_data_filename = get_data_filename
-
 
 def format_for_paprika(
     recipe_dict: dict, source_url: str = "", photo_data: bytes | None = None
