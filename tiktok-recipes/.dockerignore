@@ -1,0 +1,25 @@
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+build/
+dist/
+*.egg-info/
+.eggs/
+.env
+.venv
+*.sqlite3
+*.db
+*.log
+*.bak
+*.swp
+*.tmp
+*.lock
+# Docker
+*.dockerfile
+Dockerfile*
+# VSCode
+.vscode/
+# Ignore test outputs
+tests/__pycache__/

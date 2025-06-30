@@ -1,0 +1,14 @@
+version: "3.8"
+
+services:
+    tiktok-recipes:
+        build: .
+        container_name: tiktok-recipes-app
+        ports:
+            - "8000:8000"
+        volumes:
+            - ./audio_files:/app/audio_files
+            - ./data:/app/data
+        environment:
+            - PYTHONUNBUFFERED=1
+        command: uvicorn src.main:app --host 0.0.0.0 --port 8000 --reload
