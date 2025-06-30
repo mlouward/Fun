@@ -3,7 +3,9 @@ name = "tiktok-recipes"
 version = "0.1.0"
 description = "TikTok audio extractor and recipe processing tools."
 readme = "README.md"
-authors = ["Maxime Louward <mlouward@gmail.com>"]
+authors = [
+    { name = "Maxime Louward", email = "mlouward@gmail.com" }
+]
 requires-python = ">=3.13"
 dependencies = [
     "ruff",
@@ -19,10 +21,8 @@ dependencies = [
     "openai-whisper>=20250625",
     "fastapi",
     "uvicorn[standard]",
-    "python-multipart",
     "jinja2",
     "TikTokApi",
-    "playwright>=1.53.0",
     "rich>=14.0.0",
     "unidecode>=1.4.0",
     "opencv-python>=4.11.0.86",

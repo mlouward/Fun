@@ -1,4 +1,4 @@
-FROM python:3.13-slim
+FROM pytorch/pytorch:2.3.0-cuda12.1-cudnn8-runtime
 
 WORKDIR /app
 
@@ -7,14 +7,14 @@ COPY src ./src
 COPY audio_files ./audio_files
 COPY data ./data
 
-# Install build dependencies
-RUN pip install --upgrade pip
-RUN pip install --no-cache-dir --upgrade pip setuptools wheel
-
-# Install project dependencies
-RUN pip install --no-cache-dir .
+# Install uv first
+RUN pip install --no-cache-dir uv
+# Create a virtual environment with uv
+RUN uv venv .venv
+# Activate the venv and install dependencies
+RUN uv pip install .
 
 # Expose port
 EXPOSE 8000
 
-CMD ["uvicorn", "src.main:app", "--host", "0.0.0.0", "--port", "8000"]
+CMD [".venv/bin/uvicorn", "src.main:app", "--host", "0.0.0.0", "--port", "8000"]

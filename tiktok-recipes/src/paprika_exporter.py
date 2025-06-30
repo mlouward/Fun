@@ -17,7 +17,7 @@ class PaprikaRecipe:
         self.data = data.copy()
         self.source_url = source_url
         self.photo_data = photo_data
-        self.uid = self._get_data_filename(source_url)
+        self.uid = self.get_data_filename(source_url)
         self.created = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
         self.name = self.data.get("name", "Untitled Recipe")
         self.hash = self._compute_hash()
