@@ -18,10 +18,10 @@ from rich.panel import Panel
 from unidecode import unidecode
 
 # Import our backend modules
-from .audio_extractor import download_audio_from_tiktok
+from .audio_extractor import download_audio_and_cover_from_tiktok
 from .nlp_processor import extract_recipe_info
 from .paprika_api import PaprikaAPI
-from .paprika_exporter import format_for_paprika, get_data_filename
+from .paprika_exporter import PaprikaRecipe
 from .tiktok_description import get_tiktok_video_description
 from .transcriber import transcribe_audio
 
@@ -63,7 +63,7 @@ async def process_tiktok_url(request: ProcessRequest = Body(...)) -> dict[str, A
     Processes a TikTok URL to extract recipe information, now with TikTok video description as extra context.
 
     This endpoint performs the following steps:
-    1. Downloads the audio from the TikTok URL.
+    1. Downloads the audio and cover image from the TikTok URL.
     2. Transcribes the audio to text using Whisper.
     3. Fetches the video description using TikTokApi.
     4. Combines transcript and description as context.
@@ -72,17 +72,17 @@ async def process_tiktok_url(request: ProcessRequest = Body(...)) -> dict[str, A
     """
     try:
         # Check if the data already exists
-        output_path = data_dir / get_data_filename(str(request.url))
+        output_path = data_dir / PaprikaRecipe._get_data_filename(str(request.url))
         if output_path.exists():
             console.rule("[bold blue]Paprika JSON Already Exists")
-            with open(output_path, "r") as f:
-                console.print("[yellow]Returning cached recipe.[/yellow]")
-                return format_answer(json.load(f))
+            paprika_recipe = PaprikaRecipe.from_file(output_path)
+            console.print("[yellow]Returning cached recipe.[/yellow]")
+            return format_answer(paprika_recipe.to_dict())
 
-        # 1. Download Audio
-        console.rule("[bold blue]Step 1: Download Audio")
+        # 1. Download Audio and Cover
+        console.rule("[bold blue]Step 1: Download Audio and Cover")
         console.print(f"[cyan]Processing URL:[/cyan] {request.url}")
-        audio_path = download_audio_from_tiktok(str(request.url))
+        audio_path, cover_bytes = download_audio_and_cover_from_tiktok(str(request.url))
         if not audio_path:
             console.print(Panel("[bold red]Audio download failed.[/bold red]", style="red"))
             raise HTTPException(
@@ -125,7 +125,10 @@ async def process_tiktok_url(request: ProcessRequest = Body(...)) -> dict[str, A
 
         # 6. Format for Paprika and get the file path
         console.rule("[bold blue]Step 6: Format for Paprika")
-        recipe_file_path = format_for_paprika(recipe_info, source_url=str(request.url))
+        paprika_recipe = PaprikaRecipe(
+            recipe_info, source_url=str(request.url), photo_data=cover_bytes
+        )
+        recipe_file_path = paprika_recipe.save()
         console.print(f"[green]Recipe saved to:[/green] {recipe_file_path}")
 
         # Clean up the downloaded audio file
@@ -136,10 +139,8 @@ async def process_tiktok_url(request: ProcessRequest = Body(...)) -> dict[str, A
             console.print(f"[red]Warning: Failed to remove audio file: {e}[/red]")
 
         # Return the content of the generated JSON file
-        with open(recipe_file_path, "r") as f:
-            final_recipe = json.load(f)
-
-        return format_answer(final_recipe)
+        paprika_recipe = PaprikaRecipe.from_file(recipe_file_path)
+        return format_answer(paprika_recipe.to_dict())
 
     except Exception as e:
         # Log the full error for debugging
@@ -165,13 +166,13 @@ async def upload_to_paprika(request: PaprikaUploadRequest = Body(...)) -> dict[s
     """
     try:
         # Find the recipe file
-        output_path = data_dir / get_data_filename(str(request.url))
+        output_path = data_dir / PaprikaRecipe._get_data_filename(str(request.url))
         if not output_path.exists():
             raise HTTPException(
                 status_code=404, detail="Recipe not found. Please process the URL first."
             )
-        with open(output_path, "r") as f:
-            recipe = json.load(f)
+        paprika_recipe = PaprikaRecipe.from_file(output_path)
+        recipe = paprika_recipe.to_dict()
         # Login and upload
         api = PaprikaAPI(request.email, request.password)
         token = api.login()

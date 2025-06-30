@@ -83,7 +83,6 @@ def extract_first_frame(video_path: Path) -> bytes | None:
     """
     try:
         import cv2
-        import numpy as np
 
         cap = cv2.VideoCapture(str(video_path))
         ret, frame = cap.read()
@@ -117,39 +116,48 @@ def download_audio_and_cover_from_tiktok(
     video_id = video_id.group(1)
     video_path = Path(output_dir) / f"{video_id}.mp4"
     audio_path = Path(output_dir) / f"{video_id}.mp3"
-    # Download the video (not just audio)
-    ydl_opts = {
+    video_ydl_opts = {
         "format": "mp4",
         "outtmpl": str(video_path),
         "quiet": False,
         "no_warnings": True,
     }
     try:
-        with yt_dlp.YoutubeDL(ydl_opts) as ydl:
+        # Download the video (not just audio)
+        with yt_dlp.YoutubeDL(video_ydl_opts) as ydl:
             console.print(f"[yellow]Downloading video for cover extraction from:[/yellow] {url}")
             ydl.download([url])
         if not video_path.exists():
             console.print("[bold red]Error:[/bold red] Could not find the downloaded video file.")
             return None, None
         # Extract first frame
+        console.print(f"[yellow]Extracting first frame from video:[/yellow] {video_path}")
         cover_bytes = extract_first_frame(video_path)
-        # Now extract audio from the video file
-        ydl_opts_audio = {
-            "format": "bestaudio/best",
-            "outtmpl": str(audio_path),
-            "postprocessors": [
-                {
-                    "key": "FFmpegExtractAudio",
-                    "preferredcodec": "mp3",
-                    "preferredquality": "192",
-                }
-            ],
-            "quiet": False,
-            "no_warnings": True,
-        }
-        with yt_dlp.YoutubeDL(ydl_opts_audio) as ydl:
-            console.print(f"[yellow]Extracting audio from video:[/yellow] {video_path}")
-            ydl.download([str(video_path)])
+        if cover_bytes is None:
+            console.print("[bold red]Error:[/bold red] Could not extract the first frame as JPEG.")
+            return None, None
+        # Use ffmpeg directly to extract audio from the local video file
+        import subprocess
+
+        ffmpeg_cmd = [
+            "ffmpeg",
+            "-y",
+            "-i",
+            str(video_path),
+            "-vn",
+            "-acodec",
+            "mp3",
+            str(audio_path),
+        ]
+        console.print(
+            f"[yellow]Extracting audio from local video file with ffmpeg:[/yellow] {video_path}"
+        )
+        result = subprocess.run(ffmpeg_cmd, capture_output=True)
+        if result.returncode != 0:
+            console.print(
+                f"[bold red]ffmpeg error:[/bold red] {result.stderr.decode(errors='ignore')}"
+            )
+            return None, cover_bytes
         if not audio_path.exists():
             console.print("[bold red]Error:[/bold red] Could not find the extracted audio file.")
             return None, cover_bytes
@@ -162,10 +170,10 @@ def download_audio_and_cover_from_tiktok(
 # --- Main execution block for testing ---
 if __name__ == "__main__":
     # You can replace this URL with any TikTok video URL to test the script
-    test_tiktok_url = "https://www.tiktok.com/@amysheppardfood/video/7474287630218284310?lang=fr"
+    test_tiktok_url = "https://www.tiktok.com/@on_est_gourmands/video/7404469740334370081"
 
     # Call the function
-    audio_file_path = download_audio_from_tiktok(test_tiktok_url)
+    audio_file_path, cover_bytes = download_audio_and_cover_from_tiktok(test_tiktok_url)
 
     if audio_file_path:
         console.print(f"\n[bold green]✅ Success! Audio saved at: {audio_file_path}[/bold green]")
