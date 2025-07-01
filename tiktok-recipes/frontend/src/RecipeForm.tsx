@@ -1,20 +1,22 @@
 import React, { useState, useEffect } from "react";
 import "./App.css"; // Import global styles
+import { marked } from "marked";
 
 interface RecipeFormProps {
     recipe: RecipeData;
     photoSuggestions: string[]; // base64 image strings
     onSave: (updated: RecipeData) => void;
     loading?: boolean;
+    fetchWithAuth: (url: string, options?: any) => Promise<Response>;
 }
 
 export interface RecipeData {
-    name: string;
+    title: string;
     servings: number;
     prep_time: number;
     cook_time: number;
     ingredients: string;
-    directions: string;
+    instructions: string;
     selectedPhotoIdx: number;
 }
 
@@ -23,6 +25,7 @@ const RecipeForm: React.FC<RecipeFormProps> = ({
     photoSuggestions,
     onSave,
     loading,
+    fetchWithAuth,
 }) => {
     const [form, setForm] = useState<RecipeData>(recipe);
     const [showPreview, setShowPreview] = useState(false);
@@ -79,7 +82,7 @@ const RecipeForm: React.FC<RecipeFormProps> = ({
     const handleExportPaprika = async () => {
         try {
             // Call backend endpoint to get gzipped .paprikarecipe file
-            const resp = await fetch(`/api/recipes/export_paprika`, {
+            const resp = await fetchWithAuth(`/api/recipes/export_paprika`, {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify(recipe),
@@ -90,7 +93,7 @@ const RecipeForm: React.FC<RecipeFormProps> = ({
             const url = window.URL.createObjectURL(blob);
             const a = document.createElement("a");
             a.href = url;
-            a.download = `${recipe.name || "recipe"}.paprikarecipe`;
+            a.download = `${recipe.title || "recipe"}.paprikarecipe`;
             document.body.appendChild(a);
             a.click();
             a.remove();
@@ -129,7 +132,7 @@ const RecipeForm: React.FC<RecipeFormProps> = ({
                     color: "var(--primary-color)",
                 }}
             >
-                {form.name || "Untitled Recipe"}
+                {form.title || "Untitled Recipe"}
             </h2>
             {/* Show selected cover image preview */}
             {photoSuggestions.length > 0 && getSelectedCoverImage() && (
@@ -153,7 +156,7 @@ const RecipeForm: React.FC<RecipeFormProps> = ({
                 type="text"
                 id="title"
                 name="title"
-                value={form.name}
+                value={form.title}
                 onChange={handleChange}
                 required
             />
@@ -203,23 +206,34 @@ const RecipeForm: React.FC<RecipeFormProps> = ({
             <textarea
                 id="instructions"
                 name="instructions"
-                value={form.directions}
+                value={form.instructions}
                 onChange={handleChange}
                 rows={6}
                 required
             />
-            <button
-                type="button"
-                onClick={() => setShowPreview((p) => !p)}
-                style={{ marginBottom: "1em" }}
-            >
-                {showPreview ? "Hide" : "Show"} Markdown Preview
-            </button>
+            <div className="recipe-actions">
+                <button type="button" onClick={() => setShowPreview((p) => !p)}>
+                    {showPreview ? "Hide" : "Show"} Markdown Preview
+                </button>
+                <button type="button" onClick={handleExportPaprika}>
+                    Export to Paprika
+                </button>
+                <button
+                    id="save-recipe-button"
+                    type="submit"
+                    disabled={loading}
+                >
+                    {loading ? "Saving..." : "Save Recipe"}
+                </button>
+            </div>
             {showPreview && (
                 <div className="markdown-preview">
                     <div className="markdown-preview-title">Preview</div>
-                    {/* For now, just render as plain text. Replace with a markdown renderer if needed. */}
-                    <pre>{form.directions}</pre>
+                    <div
+                        dangerouslySetInnerHTML={{
+                            __html: marked.parse(form.instructions || ""),
+                        }}
+                    />
                 </div>
             )}
             {photoSuggestions.length > 0 && (
@@ -248,16 +262,6 @@ const RecipeForm: React.FC<RecipeFormProps> = ({
                     </div>
                 </div>
             )}
-            <button
-                type="button"
-                style={{ marginBottom: "1em", marginRight: 8 }}
-                onClick={handleExportPaprika}
-            >
-                Export to Paprika
-            </button>
-            <button id="save-recipe-button" type="submit" disabled={loading}>
-                {loading ? "Saving..." : "Save Recipe"}
-            </button>
         </form>
     );
 };

@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import TiktokUrlForm from "./TiktokUrlForm";
 import RecipeForm from "./RecipeForm";
 import AuthForm from "./AuthForm";
+import MyRecipesPage from "./MyRecipesPage";
 import type { RecipeData } from "./RecipeForm";
 import "./App.css";
 
@@ -168,61 +169,10 @@ function App() {
                         loading={loading}
                     />
                 ) : showAccount ? (
-                    <div>
-                        <h2
-                            style={{
-                                color: "var(--primary-color)",
-                                marginBottom: 24,
-                            }}
-                        >
-                            My Recipes
-                        </h2>
-                        {recipes.length === 0 ? (
-                            <div style={{ color: "var(--light-text-color)" }}>
-                                No recipes found.
-                            </div>
-                        ) : (
-                            <ul style={{ listStyle: "none", padding: 0 }}>
-                                {recipes.map((r, idx) => (
-                                    <li
-                                        key={idx}
-                                        style={{
-                                            background: "#fafbfc",
-                                            borderRadius: 8,
-                                            marginBottom: 12,
-                                            padding: "1em 1.2em",
-                                            boxShadow:
-                                                "0 1px 4px rgba(0,0,0,0.04)",
-                                            display: "flex",
-                                            alignItems: "center",
-                                            justifyContent: "space-between",
-                                            cursor: "pointer",
-                                        }}
-                                        onClick={() => handleViewRecipe(idx)}
-                                    >
-                                        <span
-                                            style={{
-                                                fontWeight: 600,
-                                                color: "var(--primary-color)",
-                                            }}
-                                        >
-                                            {r.name || "Untitled Recipe"}
-                                        </span>
-                                        <span
-                                            style={{
-                                                fontSize: 13,
-                                                color: "var(--light-text-color)",
-                                            }}
-                                        >
-                                            {r.servings
-                                                ? `${r.servings} servings`
-                                                : ""}
-                                        </span>
-                                    </li>
-                                ))}
-                            </ul>
-                        )}
-                    </div>
+                    <MyRecipesPage
+                        recipes={recipes}
+                        onViewRecipe={handleViewRecipe}
+                    />
                 ) : (
                     <>
                         {step === "url" && (
@@ -238,6 +188,7 @@ function App() {
                                 photoSuggestions={photoSuggestions}
                                 onSave={handleSaveRecipe}
                                 loading={loading}
+                                fetchWithAuth={fetchWithAuth}
                             />
                         )}
                         {step === "done" && (
