@@ -1,10 +1,14 @@
 import base64
+import gzip
+import io
+import json
 import os
 import re
 from pathlib import Path
-from typing import Any, List
+from typing import Any, List, Optional
 
 from fastapi import APIRouter, Body, Depends, HTTPException
+from fastapi.responses import StreamingResponse
 from fastapi.security import OAuth2PasswordBearer
 from jose import JWTError, jwt
 from pydantic import BaseModel
@@ -66,6 +70,69 @@ async def get_current_user(token: str = Depends(oauth2_scheme), db: AsyncSession
     return user
 
 
+# Helper: get a recipe for a user by tiktok_username/video_id or title
+async def get_user_recipe(
+    db: AsyncSession,
+    user_id: int,
+    tiktok_username: Optional[str] = None,
+    tiktok_video_id: Optional[str] = None,
+    title: Optional[str] = None,
+) -> Optional[Recipe]:
+    if tiktok_username and tiktok_video_id:
+        result = await db.execute(
+            select(Recipe).where(
+                and_(
+                    Recipe.user_id == user_id,
+                    Recipe.tiktok_username == tiktok_username,
+                    Recipe.tiktok_video_id == tiktok_video_id,
+                )
+            )
+        )
+        recipe = result.scalar()
+        if recipe:
+            return recipe
+    if title:
+        result = await db.execute(
+            select(Recipe).where(and_(Recipe.user_id == user_id, Recipe.title == title))
+        )
+        recipe = result.scalar()
+        if recipe:
+            return recipe
+    return None
+
+
+# Helper: create a Recipe from a dict, parsing ints safely
+async def create_recipe_from_dict(
+    db: AsyncSession,
+    user_id: int,
+    data: dict,
+    tiktok_username: Optional[str] = None,
+    tiktok_video_id: Optional[str] = None,
+) -> Recipe:
+    def safe_int(val, default=0):
+        try:
+            return int(val)
+        except Exception:
+            return default
+
+    recipe = Recipe(
+        title=data.get("name") or data.get("title") or "Untitled Recipe",
+        servings=safe_int(data.get("servings")),
+        prep_time=safe_int(data.get("prep_time")),
+        cook_time=safe_int(data.get("cook_time")),
+        ingredients=data.get("ingredients", ""),
+        instructions=data.get("directions") or data.get("instructions", ""),
+        cover_image_idx=safe_int(data.get("cover_image_idx")),
+        user_id=user_id,
+        tiktok_username=tiktok_username,
+        tiktok_video_id=tiktok_video_id,
+    )
+    db.add(recipe)
+    await db.commit()
+    await db.refresh(recipe)
+    return recipe
+
+
 @router.post("/", response_model=RecipeCreate)
 async def create_recipe(
     recipe: RecipeCreate,
@@ -101,18 +168,8 @@ async def process_tiktok_url(
         if not tiktok_username or not tiktok_video_id:
             raise HTTPException(status_code=400, detail="Invalid TikTok URL format.")
         # Check if this user already has this video saved
-        existing = await db.execute(
-            select(Recipe).where(
-                and_(
-                    Recipe.user_id == current_user.id,
-                    Recipe.tiktok_username == tiktok_username,
-                    Recipe.tiktok_video_id == tiktok_video_id,
-                )
-            )
-        )
-        db_recipe = existing.scalar()
+        db_recipe = await get_user_recipe(db, current_user.id, tiktok_username, tiktok_video_id)
         if db_recipe:
-            # Return the existing recipe for this user/video
             result = format_answer(
                 {
                     "title": db_recipe.title,
@@ -145,21 +202,9 @@ async def process_tiktok_url(
             recipe_info, source_url=request.url, photo_data=cover_bytes_list[0]
         )
         os.remove(audio_path)
-        db_recipe = Recipe(
-            title=paprika_recipe.data.get("name", "Untitled Recipe"),
-            servings=paprika_recipe.data.get("servings", 0),
-            prep_time=paprika_recipe.data.get("prep_time", 0),
-            cook_time=paprika_recipe.data.get("cook_time", 0),
-            ingredients=paprika_recipe.data.get("ingredients", ""),
-            instructions=paprika_recipe.data.get("directions", ""),
-            cover_image_idx=0,  # Default to first image
-            user_id=current_user.id,
-            tiktok_username=tiktok_username,
-            tiktok_video_id=tiktok_video_id,
+        db_recipe = await create_recipe_from_dict(
+            db, current_user.id, paprika_recipe.data, tiktok_username, tiktok_video_id
         )
-        db.add(db_recipe)
-        await db.commit()
-        await db.refresh(db_recipe)
         result = format_answer(
             {
                 "title": db_recipe.title,
@@ -191,34 +236,12 @@ async def update_recipe(
     current_user: User = Depends(get_current_user),
 ):
     try:
-        # Find the recipe for this user by tiktok_username and tiktok_video_id (preferred), or by title as fallback
         tiktok_username = data.get("tiktok_username")
         tiktok_video_id = data.get("tiktok_video_id")
-        recipe = None
-        if tiktok_username and tiktok_video_id:
-            result = await db.execute(
-                select(Recipe).where(
-                    and_(
-                        Recipe.user_id == current_user.id,
-                        Recipe.tiktok_username == tiktok_username,
-                        Recipe.tiktok_video_id == tiktok_video_id,
-                    )
-                )
-            )
-            recipe = result.scalar()
-        if not recipe:
-            # fallback: try by title
-            title = data.get("title")
-            if title:
-                result = await db.execute(
-                    select(Recipe).where(
-                        and_(Recipe.user_id == current_user.id, Recipe.title == title)
-                    )
-                )
-                recipe = result.scalar()
+        title = data.get("title")
+        recipe = await get_user_recipe(db, current_user.id, tiktok_username, tiktok_video_id, title)
         if not recipe:
             return {"error": "Recipe not found for update."}
-        # Update fields
         for field in [
             "title",
             "servings",
@@ -236,15 +259,49 @@ async def update_recipe(
             "message": "Recipe updated successfully!",
             "recipe": {
                 "title": recipe.title,
-                "servings": recipe.servings,
-                "prep_time": recipe.prep_time,
-                "cook_time": recipe.cook_time,
+                "servings": int(recipe.servings) if recipe.servings is not None else 0,
+                "prep_time": int(recipe.prep_time) if recipe.prep_time is not None else 0,
+                "cook_time": int(recipe.cook_time) if recipe.cook_time is not None else 0,
                 "ingredients": recipe.ingredients,
                 "instructions": recipe.instructions,
-                "cover_image_idx": recipe.cover_image_idx,
+                "cover_image_idx": int(recipe.cover_image_idx)
+                if recipe.cover_image_idx is not None
+                else 0,
                 "tiktok_username": getattr(recipe, "tiktok_username", None),
                 "tiktok_video_id": getattr(recipe, "tiktok_video_id", None),
             },
         }
     except Exception as e:
         return {"error": str(e)}
+
+
+@router.post("/export_paprika")
+async def export_paprika(
+    data: dict = Body(...),
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+) -> StreamingResponse:
+    tiktok_username = data.get("tiktok_username")
+    tiktok_video_id = data.get("tiktok_video_id")
+    title = data.get("name") or data.get("title")
+    recipe = await get_user_recipe(db, current_user.id, tiktok_username, tiktok_video_id, title)
+    if not recipe:
+        raise HTTPException(status_code=404, detail="Recipe not found for export.")
+    paprika_dict = {
+        "name": recipe.title,
+        "servings": recipe.servings,
+        "prep_time": recipe.prep_time,
+        "cook_time": recipe.cook_time,
+        "ingredients": recipe.ingredients,
+        "directions": recipe.instructions,
+    }
+    paprika_json = io.BytesIO()
+    with gzip.GzipFile(fileobj=paprika_json, mode="wb") as gz:
+        gz.write(bytes(json.dumps(paprika_dict, indent=2), "utf-8"))
+    paprika_json.seek(0)
+    filename = f"{recipe.title or 'recipe'}.paprikarecipe"
+    return StreamingResponse(
+        paprika_json,
+        media_type="application/x-paprika-recipe",
+        headers={"Content-Disposition": f"attachment; filename={filename}"},
+    )

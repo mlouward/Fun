@@ -75,6 +75,31 @@ const RecipeForm: React.FC<RecipeFormProps> = ({
         return null;
     };
 
+    // Export to Paprika handler
+    const handleExportPaprika = async () => {
+        try {
+            // Call backend endpoint to get gzipped .paprikarecipe file
+            const resp = await fetch(`/api/recipes/export_paprika`, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(recipe),
+            });
+            if (!resp.ok) throw new Error("Failed to export Paprika file");
+            const blob = await resp.blob();
+            // Download as .paprikarecipe file
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement("a");
+            a.href = url;
+            a.download = `${recipe.name || "recipe"}.paprikarecipe`;
+            document.body.appendChild(a);
+            a.click();
+            a.remove();
+            window.URL.revokeObjectURL(url);
+        } catch (e) {
+            alert("Failed to export Paprika file");
+        }
+    };
+
     return (
         <form id="edit-recipe-form" onSubmit={handleSubmit}>
             {/* Show TikTok source URL if available */}
@@ -223,6 +248,13 @@ const RecipeForm: React.FC<RecipeFormProps> = ({
                     </div>
                 </div>
             )}
+            <button
+                type="button"
+                style={{ marginBottom: "1em", marginRight: 8 }}
+                onClick={handleExportPaprika}
+            >
+                Export to Paprika
+            </button>
             <button id="save-recipe-button" type="submit" disabled={loading}>
                 {loading ? "Saving..." : "Save Recipe"}
             </button>
