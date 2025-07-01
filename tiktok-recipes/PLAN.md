@@ -74,11 +74,10 @@ tiktok-recipes/
 ### Phase 3: Paprika Integration
 
 1. **Paprika API Client**:
-    * In `src/paprika_exporter.py`, add functionality to communicate with the Paprika API, using the provided Gist or GitLab project for reference.
-    * Handle user authentication securely.
+    * In `src/paprika_exporter.py`, add functionality to export a recipe to Paprika.
 
-2. **Upload Functionality**:
-    * Add a new API endpoint or enhance the existing one to allow users to upload the generated recipe to their Paprika account.
+2. **Download Functionality**:
+    * Users can download the recipe in Paprika format from the web interface.
 
 ### Phase 4: Refinement and Testing
 
@@ -91,3 +90,24 @@ tiktok-recipes/
 
 3. **Documentation**:
     * Update the `README.md` with detailed setup and usage instructions.
+
+## Future Improvements
+
+### 1. User Experience & Frontend
+
+* **Recipe Gallery:** Add a page to browse all processed recipes with thumbnails, search, and filter by ingredient or difficulty.
+* **Recipe Editing:** Allow users to edit the extracted recipe before exporting or uploading to Paprika.
+* **Progress Feedback:** Show step-by-step progress (downloading, transcribing, extracting, etc.) in the UI.
+
+### 2. Backend & API
+
+* **Async Processing:** Offload long-running tasks (transcription, NLP) to a background worker (e.g., Celery, FastAPI background tasks, or RQ) and provide job status endpoints.
+* **WebSocket Notifications:** Use WebSockets to push progress updates to the frontend.
+
+### 3. Recipe Quality & NLP
+
+* **Ingredient Normalization:** Use an ingredient parser to standardize ingredient names and units for better search and export.
+
+### 4. Paprika & Export
+
+* **Bulk Export:** Allow users to select and export multiple recipes at once.

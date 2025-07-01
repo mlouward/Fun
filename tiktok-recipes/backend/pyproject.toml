@@ -26,6 +26,11 @@ dependencies = [
     "rich>=14.0.0",
     "unidecode>=1.4.0",
     "opencv-python>=4.11.0.86",
+    "sqlalchemy>=2.0.41",
+    "python-jose>=3.5.0",
+    "passlib>=1.7.4",
+    "asyncpg>=0.30.0",
+    "bcrypt>=4.3.0",
 ]
 
 [tool.ruff]

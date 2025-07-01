@@ -1,0 +1,225 @@
+:root {
+    --primary-color: #ff3b5c; /* Vibrant TikTok red */
+    --background-color: #f5f6fa; /* Light gray background */
+    --card-background: #fff;
+    --text-color: #222;
+    --light-text-color: #666;
+    --border-color: #ff3b5c;
+    --box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+}
+
+#root {
+    max-width: 1280px;
+    margin: 0 auto;
+    padding: 2rem;
+    text-align: center;
+    background-color: var(--background-color);
+}
+
+.logo {
+    height: 6em;
+    padding: 1.5em;
+    will-change: filter;
+    transition: filter 300ms;
+}
+.logo:hover {
+    filter: drop-shadow(0 0 2em #646cffaa);
+}
+.logo.react:hover {
+    filter: drop-shadow(0 0 2em #61dafbaa);
+}
+
+@keyframes logo-spin {
+    from {
+        transform: rotate(0deg);
+    }
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+    a:nth-of-type(2) .logo {
+        animation: logo-spin infinite 20s linear;
+    }
+}
+
+.card {
+    padding: 2em;
+    background: var(--card-background);
+    border-radius: 12px;
+    box-shadow: var(--box-shadow);
+}
+
+.read-the-docs {
+    color: #888;
+}
+
+body {
+    font-family: "Poppins", sans-serif;
+    background-color: var(--background-color);
+    color: var(--text-color);
+    margin: 0;
+    padding: 2rem;
+    display: flex;
+    justify-content: center;
+    align-items: flex-start;
+    min-height: 100vh;
+}
+
+.container {
+    width: 100%;
+    max-width: 600px;
+    background: var(--card-background);
+    border-radius: 12px;
+    box-shadow: var(--box-shadow);
+    padding: 2.5rem;
+    text-align: center;
+}
+
+header h1 {
+    font-size: 2.5rem;
+    font-weight: 700;
+    margin-bottom: 0.5rem;
+    color: var(--primary-color);
+}
+
+header p {
+    color: var(--light-text-color);
+    margin-bottom: 2rem;
+}
+
+button,
+.auth-form button,
+#edit-recipe-form button#save-recipe-button {
+    padding: 0.75rem 1.5rem;
+    background: #fff;
+    color: var(--primary-color);
+    border: 2px solid var(--primary-color);
+    border-radius: 8px;
+    font-size: 1rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: background 0.2s, color 0.2s, transform 0.2s;
+}
+
+button:hover,
+.auth-form button:hover,
+#edit-recipe-form button#save-recipe-button:hover {
+    background: var(--primary-color);
+    color: #fff;
+    transform: translateY(-2px);
+}
+
+input,
+textarea {
+    width: 100%;
+    padding: 0.75rem 1rem;
+    border: 1.5px solid var(--border-color);
+    border-radius: 8px;
+    font-size: 1rem;
+    margin-bottom: 1.25em;
+    background: #fafbfc;
+    color: var(--text-color);
+    transition: border-color 0.3s, box-shadow 0.3s;
+    box-sizing: border-box;
+}
+
+textarea {
+    resize: vertical;
+}
+
+input:focus,
+textarea:focus {
+    outline: none;
+    border-color: var(--primary-color);
+    box-shadow: 0 0 0 2px rgba(255, 59, 92, 0.15);
+    background: #fff;
+}
+
+label {
+    display: block;
+    font-weight: 600;
+    margin-bottom: 0.25em;
+    color: var(--primary-color);
+}
+
+.markdown-preview {
+    background: #f6f8fa;
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    padding: 1em;
+    margin-bottom: 1.5em;
+    font-size: 1rem;
+    color: var(--text-color);
+    min-height: 3em;
+    white-space: pre-wrap;
+    word-break: break-word;
+}
+
+.markdown-preview-title {
+    color: var(--primary-color);
+    font-weight: 600;
+    margin-bottom: 0.5em;
+    font-size: 1.05em;
+}
+
+.photo-suggestions {
+    display: flex;
+    gap: 1em;
+    margin-bottom: 1.5em;
+    justify-content: center;
+    flex-wrap: wrap;
+}
+
+.photo-suggestions img {
+    width: 90px;
+    height: 90px;
+    object-fit: cover;
+    border-radius: 8px;
+    border: 2px solid var(--border-color);
+    cursor: pointer;
+    transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.photo-suggestions img.selected {
+    border-color: var(--primary-color);
+    box-shadow: 0 0 0 2px var(--primary-color);
+}
+
+.photo-suggestions-label {
+    font-weight: 600;
+    color: var(--primary-color);
+    margin-bottom: 0.5em;
+    display: block;
+    text-align: center;
+}
+
+.auth-form {
+    background: #fff;
+    border-radius: 12px;
+    box-shadow: var(--box-shadow);
+    padding: 2rem 2.5rem 1.5rem 2.5rem;
+    margin-bottom: 2rem;
+    text-align: left;
+}
+
+.auth-form h2 {
+    color: var(--primary-color);
+    margin-bottom: 1.5rem;
+    text-align: center;
+}
+
+.auth-form input {
+    margin-bottom: 1em;
+}
+
+.error-message {
+    color: var(--primary-color);
+    background: #fff0f3;
+    border: 1px solid var(--primary-color);
+    border-radius: 8px;
+    padding: 0.75em 1em;
+    margin-top: 1em;
+    text-align: center;
+}
