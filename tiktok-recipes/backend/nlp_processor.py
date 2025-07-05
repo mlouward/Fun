@@ -58,7 +58,8 @@ def extract_recipe_info(transcript: str) -> dict:
     messages = [
         {
             "role": "user",
-            "content": f"""You are an expert at structured information extraction for recipes. Your goal is to provide accurate information (measurements, steps) to reproduce a recipe. {prompt_instructions}\nThe following TEXT includes the description and video transcript of a recipe. TEXT: \n{transcript}""",
+            "content": f"""You are an expert at structured information extraction for recipes. Your goal is to provide accurate information (measurements, steps) to reproduce a recipe. {prompt_instructions}\n
+            The following TEXT includes the description and video transcript of a recipe. TEXT: \n{transcript}""",
         }
     ]
     prompt = processor.apply_chat_template(

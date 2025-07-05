@@ -2,32 +2,30 @@ import base64
 import gzip
 import io
 import json
+import logging
 import os
 import re
-from pathlib import Path
-from typing import Any, List, Optional
+from typing import Any, Optional
 
-from fastapi import APIRouter, Body, Depends, HTTPException
-from fastapi.responses import StreamingResponse
+from fastapi import APIRouter, Body, Depends, HTTPException, Query
+from fastapi.responses import JSONResponse, StreamingResponse
 from fastapi.security import OAuth2PasswordBearer
 from jose import JWTError, jwt
 from pydantic import BaseModel
 from sqlalchemy import and_, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from .audio_extractor import download_audio_and_cover_from_tiktok
-from .auth import ALGORITHM, SECRET_KEY
-from .models import AsyncSessionLocal, Recipe, User
-from .nlp_processor import extract_recipe_info
-from .paprika_exporter import PaprikaRecipe
-from .tiktok_description import get_tiktok_video_description
-from .transcriber import transcribe_audio
+from auth import ALGORITHM, SECRET_KEY
+from celery_scripts.tasks import process_tiktok_recipe
+from models import AsyncSessionLocal, Recipe, User
+
+# Set up basic logging
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
 
 router = APIRouter(tags=["recipes"])
 
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/auth/login")
-
-DATA_DIR = Path(os.environ.get("DATA_DIR", Path(__file__).parent.parent / "data"))
 
 
 class RecipeCreate(BaseModel):
@@ -101,36 +99,24 @@ async def get_user_recipe(
     return None
 
 
-# Helper: create a Recipe from a dict, parsing ints safely
-async def create_recipe_from_dict(
-    db: AsyncSession,
-    user_id: int,
-    data: dict,
-    tiktok_username: Optional[str] = None,
-    tiktok_video_id: Optional[str] = None,
-) -> Recipe:
-    def safe_int(val, default=0):
+def get_cover_images_from_disk(user_id: int, tiktok_video_id: str, base_dir: str = "data") -> list:
+    """
+    Return the list of base64-encoded image strings for a given user and tiktok_video_id.
+    """
+    dir_path = f"{base_dir}/{user_id}/{tiktok_video_id}"
+    if not os.path.exists(dir_path):
+        return []
+    files = [f for f in os.listdir(dir_path) if f.startswith("cover_") and f.endswith(".jpg")]
+    files.sort()
+    images = []
+    for f in files:
         try:
-            return int(val)
+            with open(os.path.join(dir_path, f), "rb") as imgf:
+                img_bytes = imgf.read()
+                images.append(base64.b64encode(img_bytes).decode("utf-8"))
         except Exception:
-            return default
-
-    recipe = Recipe(
-        title=data.get("name") or data.get("title") or "Untitled Recipe",
-        servings=safe_int(data.get("servings")),
-        prep_time=safe_int(data.get("prep_time")),
-        cook_time=safe_int(data.get("cook_time")),
-        ingredients=data.get("ingredients", ""),
-        instructions=data.get("directions") or data.get("instructions", ""),
-        cover_image_idx=safe_int(data.get("cover_image_idx")),
-        user_id=user_id,
-        tiktok_username=tiktok_username,
-        tiktok_video_id=tiktok_video_id,
-    )
-    db.add(recipe)
-    await db.commit()
-    await db.refresh(recipe)
-    return recipe
+            images.append(None)
+    return images
 
 
 @router.post("/", response_model=RecipeCreate)
@@ -146,12 +132,38 @@ async def create_recipe(
     return db_recipe
 
 
-@router.get("/", response_model=List[RecipeCreate])
+@router.get("/", tags=["Recipe Gallery"])
 async def list_recipes(
-    db: AsyncSession = Depends(get_db), current_user: User = Depends(get_current_user)
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+    limit: Optional[int] = Query(None, ge=1, le=100),
+    offset: Optional[int] = Query(None, ge=0),
 ):
-    result = await db.execute(select(Recipe).where(Recipe.user_id == current_user.id))
-    return result.scalars().all()
+    query = select(Recipe).where(Recipe.user_id == current_user.id)
+    total_result = await db.execute(query)
+    total_count = len(total_result.scalars().all())
+    if limit is not None and offset is not None:
+        query = query.offset(offset).limit(limit)
+    result = await db.execute(query)
+    recipes = result.scalars().all()
+    out = []
+    for r in recipes:
+        cover_images_b64 = get_cover_images_from_disk(r.user_id, r.tiktok_video_id)
+        out.append(
+            {
+                "title": r.title,
+                "servings": r.servings,
+                "prep_time": r.prep_time,
+                "cook_time": r.cook_time,
+                "ingredients": r.ingredients,
+                "instructions": r.instructions,
+                "cover_image_idx": r.cover_image_idx,
+                "tiktok_username": r.tiktok_username,
+                "tiktok_video_id": r.tiktok_video_id,
+                "cover_images": cover_images_b64,
+            }
+        )
+    return JSONResponse(content={"total": total_count, "recipes": out})
 
 
 @router.post("/process_url", tags=["Recipe Processing"])
@@ -161,13 +173,12 @@ async def process_tiktok_url(
     current_user: User = Depends(get_current_user),
 ) -> dict[Any, Any]:
     try:
-        # Parse TikTok username and video ID from URL
+        print(request, current_user)
         match = re.search(r"tiktok\.com/@([\w.]+)/video/(\d+)", request.url)
         tiktok_username = match.group(1) if match else None
         tiktok_video_id = match.group(2) if match else None
         if not tiktok_username or not tiktok_video_id:
             raise HTTPException(status_code=400, detail="Invalid TikTok URL format.")
-        # Check if this user already has this video saved
         db_recipe = await get_user_recipe(db, current_user.id, tiktok_username, tiktok_video_id)
         if db_recipe:
             result = format_answer(
@@ -184,43 +195,8 @@ async def process_tiktok_url(
                 }
             )
             return result
-        # Download and transcribe as before
-        audio_path, cover_bytes_list = download_audio_and_cover_from_tiktok(request.url)
-        if not audio_path or not cover_bytes_list:
-            raise HTTPException(status_code=500, detail="Audio download failed.")
-        transcript = transcribe_audio(audio_path)
-        if not transcript:
-            raise HTTPException(status_code=500, detail="Transcription failed.")
-        description = await get_tiktok_video_description(request.url)
-        context = (
-            f"Description: {description}\nTranscript: {transcript}" if description else transcript
-        )
-        recipe_info = extract_recipe_info(context)
-        if not recipe_info:
-            raise HTTPException(status_code=500, detail="Failed to extract recipe information.")
-        paprika_recipe = PaprikaRecipe(
-            recipe_info, source_url=request.url, photo_data=cover_bytes_list[0]
-        )
-        os.remove(audio_path)
-        db_recipe = await create_recipe_from_dict(
-            db, current_user.id, paprika_recipe.data, tiktok_username, tiktok_video_id
-        )
-        result = format_answer(
-            {
-                "title": db_recipe.title,
-                "servings": db_recipe.servings,
-                "prep_time": db_recipe.prep_time,
-                "cook_time": db_recipe.cook_time,
-                "ingredients": db_recipe.ingredients,
-                "instructions": db_recipe.instructions,
-                "cover_image_idx": db_recipe.cover_image_idx,
-                "tiktok_username": db_recipe.tiktok_username,
-                "tiktok_video_id": db_recipe.tiktok_video_id,
-            }
-        )
-        cover_images_b64 = [base64.b64encode(b).decode("utf-8") for b in cover_bytes_list]
-        result["cover_images"] = cover_images_b64
-        return result
+        process_tiktok_recipe.delay(current_user.id, request.url, tiktok_username, tiktok_video_id)
+        return {"message": "Recipe is being processed. You will be notified when it is ready."}
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"An internal server error occurred: {e}")
 
@@ -255,6 +231,7 @@ async def update_recipe(
                 setattr(recipe, field, data[field])
         await db.commit()
         await db.refresh(recipe)
+        logger.info("[update_recipe] Saved recipe")
         return {
             "message": "Recipe updated successfully!",
             "recipe": {
@@ -264,14 +241,15 @@ async def update_recipe(
                 "cook_time": int(recipe.cook_time) if recipe.cook_time is not None else 0,
                 "ingredients": recipe.ingredients,
                 "instructions": recipe.instructions,
-                "cover_image_idx": int(recipe.cover_image_idx)
-                if recipe.cover_image_idx is not None
-                else 0,
+                "cover_image_idx": (
+                    int(recipe.cover_image_idx) if recipe.cover_image_idx is not None else 0
+                ),
                 "tiktok_username": getattr(recipe, "tiktok_username", None),
                 "tiktok_video_id": getattr(recipe, "tiktok_video_id", None),
             },
         }
     except Exception as e:
+        logger.error(f"[update_recipe] Error: {e}")
         return {"error": str(e)}
 
 
@@ -305,3 +283,20 @@ async def export_paprika(
         media_type="application/x-paprika-recipe",
         headers={"Content-Disposition": f"attachment; filename={filename}"},
     )
+
+
+@router.delete("/delete_recipe", tags=["Recipe Editing"])
+async def delete_recipe(
+    data: dict = Body(...),
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    tiktok_username = data.get("tiktok_username")
+    tiktok_video_id = data.get("tiktok_video_id")
+    title = data.get("title")
+    recipe = await get_user_recipe(db, current_user.id, tiktok_username, tiktok_video_id, title)
+    if not recipe:
+        raise HTTPException(status_code=404, detail="Recipe not found for deletion.")
+    await db.delete(recipe)
+    await db.commit()
+    return {"message": "Recipe deleted successfully!"}

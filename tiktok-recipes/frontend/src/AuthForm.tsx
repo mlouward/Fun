@@ -22,8 +22,19 @@ const AuthForm: React.FC<AuthFormProps> = ({
         setError(null);
         try {
             const endpoint =
-                mode === "login" ? "/api/auth/login" : "/api/auth/register";
-            const resp = await fetch(endpoint, {
+                mode === "login" ? "api/auth/login" : "api/auth/register";
+            // Get the base URL from environment variables
+            const baseUrl = import.meta.env.VITE_API_URL || "";
+            const cleanBase = baseUrl.replace(/\/+$/, "");
+            const cleanPath = endpoint.replace(/^\/+/, "");
+            const fullUrl = cleanBase
+                ? `${cleanBase}/${cleanPath}`
+                : `/${cleanPath}`;
+
+            console.log("API URL:", import.meta.env.VITE_API_URL);
+            console.log("Full URL:", fullUrl);
+
+            const resp = await fetch(fullUrl, {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({ username, password }),
@@ -37,8 +48,12 @@ const AuthForm: React.FC<AuthFormProps> = ({
                 return;
             }
             onAuth(data.access_token);
-        } catch (e: any) {
-            setError(e.message || "Auth failed");
+        } catch (e) {
+            if (e instanceof Error) {
+                setError(e.message || "Auth failed");
+            } else {
+                setError("Unknown error");
+            }
         }
     };
 

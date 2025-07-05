@@ -1,4 +1,6 @@
-# Async SQLAlchemy models for User and Recipe
+import os
+
+import dotenv
 from sqlalchemy import ForeignKey, Integer, String, Text
 from sqlalchemy.ext.asyncio import AsyncAttrs, async_sessionmaker, create_async_engine
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column, relationship
@@ -35,16 +37,8 @@ class Recipe(Base):
 # Database setup
 # Get from .env file
 
-import os
-
-import dotenv
-
 dotenv.load_dotenv()
-DATABASE_URL = (
-    os.environ.get("DATABASE_URL_LOCAL")
-    or os.environ.get("DATABASE_URL_DOCKER")
-    or os.environ.get("DATABASE_URL")
-)
+DATABASE_URL = os.environ.get("DATABASE_URL")
 if not DATABASE_URL:
     raise ValueError("DATABASE_URL environment variable is not set")
 engine = create_async_engine(DATABASE_URL, echo=True)

@@ -1,13 +1,26 @@
 import React, { useState, useEffect } from "react";
-import "./App.css"; // Import global styles
+import {
+    Box,
+    Button,
+    TextField,
+    Typography,
+    Paper,
+    Grid,
+    Divider,
+} from "@mui/material";
+import DeleteIcon from "@mui/icons-material/Delete";
+import PreviewIcon from "@mui/icons-material/Visibility";
+import SaveIcon from "@mui/icons-material/Save";
 import { marked } from "marked";
+import { confirmAlert } from "react-confirm-alert";
+import "react-confirm-alert/src/react-confirm-alert.css";
 
 interface RecipeFormProps {
     recipe: RecipeData;
-    photoSuggestions: string[]; // base64 image strings
     onSave: (updated: RecipeData) => void;
     loading?: boolean;
-    fetchWithAuth: (url: string, options?: any) => Promise<Response>;
+    fetchWithAuth: (url: string, options?: RequestInit) => Promise<Response>;
+    onDelete?: () => void;
 }
 
 export interface RecipeData {
@@ -17,30 +30,34 @@ export interface RecipeData {
     cook_time: number;
     ingredients: string;
     instructions: string;
-    selectedPhotoIdx: number;
+    cover_image_idx: number;
+    cover_images?: string[];
+    tiktok_username?: string;
+    tiktok_video_id?: string;
+    source_url?: string;
 }
 
 const RecipeForm: React.FC<RecipeFormProps> = ({
     recipe,
-    photoSuggestions,
     onSave,
     loading,
     fetchWithAuth,
+    onDelete,
 }) => {
+    const images = recipe.cover_images || [];
     const [form, setForm] = useState<RecipeData>(recipe);
     const [showPreview, setShowPreview] = useState(false);
 
-    // Ensure selectedPhotoIdx is always valid
     useEffect(() => {
         if (
-            photoSuggestions.length > 0 &&
-            (form.selectedPhotoIdx === undefined ||
-                form.selectedPhotoIdx < 0 ||
-                form.selectedPhotoIdx >= photoSuggestions.length)
+            images.length > 0 &&
+            (form.cover_image_idx === undefined ||
+                form.cover_image_idx < 0 ||
+                form.cover_image_idx >= images.length)
         ) {
-            setForm((f) => ({ ...f, selectedPhotoIdx: 0 }));
+            setForm((f) => ({ ...f, cover_image_idx: 0 }));
         }
-    }, [photoSuggestions]);
+    }, [images]);
 
     const handleChange = (
         e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
@@ -53,7 +70,7 @@ const RecipeForm: React.FC<RecipeFormProps> = ({
     };
 
     const handlePhotoSelect = (idx: number) => {
-        setForm((f) => ({ ...f, selectedPhotoIdx: idx }));
+        setForm((f) => ({ ...f, cover_image_idx: idx }));
     };
 
     const handleSubmit = (e: React.FormEvent) => {
@@ -61,15 +78,13 @@ const RecipeForm: React.FC<RecipeFormProps> = ({
         onSave(form);
     };
 
-    // Helper to get the selected cover image as a data URL
     const getSelectedCoverImage = () => {
         if (
-            photoSuggestions.length > 0 &&
-            form.selectedPhotoIdx >= 0 &&
-            form.selectedPhotoIdx < photoSuggestions.length
+            images.length > 0 &&
+            form.cover_image_idx >= 0 &&
+            form.cover_image_idx < images.length
         ) {
-            const img = photoSuggestions[form.selectedPhotoIdx];
-            // If not already a data URL, add prefix
+            const img = images[form.cover_image_idx];
             if (img && !img.startsWith("data:image")) {
                 return `data:image/jpeg;base64,${img}`;
             }
@@ -78,10 +93,8 @@ const RecipeForm: React.FC<RecipeFormProps> = ({
         return null;
     };
 
-    // Export to Paprika handler
     const handleExportPaprika = async () => {
         try {
-            // Call backend endpoint to get gzipped .paprikarecipe file
             const resp = await fetchWithAuth(`/api/recipes/export_paprika`, {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
@@ -89,7 +102,6 @@ const RecipeForm: React.FC<RecipeFormProps> = ({
             });
             if (!resp.ok) throw new Error("Failed to export Paprika file");
             const blob = await resp.blob();
-            // Download as .paprikarecipe file
             const url = window.URL.createObjectURL(blob);
             const a = document.createElement("a");
             a.href = url;
@@ -98,171 +110,305 @@ const RecipeForm: React.FC<RecipeFormProps> = ({
             a.click();
             a.remove();
             window.URL.revokeObjectURL(url);
-        } catch (e) {
+        } catch {
             alert("Failed to export Paprika file");
         }
     };
 
+    const handleDelete = async () => {
+        confirmAlert({
+            title: "Delete Recipe",
+            message:
+                "Are you sure you want to delete this recipe? This cannot be undone.",
+            buttons: [
+                {
+                    label: "Yes, Delete",
+                    onClick: async () => {
+                        try {
+                            const resp = await fetchWithAuth(
+                                "/api/recipes/delete_recipe",
+                                {
+                                    method: "DELETE",
+                                    headers: {
+                                        "Content-Type": "application/json",
+                                    },
+                                    body: JSON.stringify({
+                                        tiktok_username: recipe.tiktok_username,
+                                        tiktok_video_id: recipe.tiktok_video_id,
+                                        title: recipe.title,
+                                    }),
+                                }
+                            );
+                            if (!resp.ok)
+                                throw new Error("Failed to delete recipe");
+                            if (onDelete) onDelete();
+                        } catch (e) {
+                            if (e instanceof Error) {
+                                alert(e.message || "Failed to delete recipe");
+                            } else {
+                                alert("Unknown error");
+                            }
+                        }
+                    },
+                },
+                {
+                    label: "Cancel",
+                    onClick: () => {},
+                },
+            ],
+        });
+    };
+
     return (
-        <form id="edit-recipe-form" onSubmit={handleSubmit}>
-            {/* Show TikTok source URL if available */}
-            {recipe && (recipe as any).source_url && (
-                <div style={{ marginBottom: "1em" }}>
-                    <span
-                        style={{
+        <Paper
+            elevation={3}
+            sx={{
+                p: { xs: 2, md: 4 },
+                maxWidth: 600,
+                mx: "auto",
+                mt: 2,
+            }}
+        >
+            <form id="edit-recipe-form" onSubmit={handleSubmit}>
+                {recipe && recipe.source_url && (
+                    <Typography
+                        variant="body2"
+                        sx={{
                             color: "var(--light-text-color)",
-                            fontSize: "0.95em",
+                            mb: 2,
                         }}
                     >
                         TikTok Link:{" "}
                         <a
-                            href={(recipe as any).source_url}
+                            href={recipe.source_url}
                             target="_blank"
                             rel="noopener noreferrer"
+                            style={{ color: "var(--primary-color)" }}
                         >
-                            {(recipe as any).source_url}
+                            {recipe.source_url}
                         </a>
-                    </span>
-                </div>
-            )}
-            {/* Show recipe title at the top */}
-            <h2
-                style={{
-                    marginBottom: "1em",
-                    color: "var(--primary-color)",
-                }}
-            >
-                {form.title || "Untitled Recipe"}
-            </h2>
-            {/* Show selected cover image preview */}
-            {photoSuggestions.length > 0 && getSelectedCoverImage() && (
-                <div style={{ marginBottom: "1em" }}>
-                    <img
-                        src={getSelectedCoverImage()!}
-                        alt="Selected cover"
-                        style={{
-                            width: 180,
-                            height: 180,
-                            objectFit: "cover",
-                            borderRadius: 12,
-                            border: "2px solid var(--primary-color)",
-                            boxShadow: "0 2px 8px rgba(0,0,0,0.08)",
-                        }}
-                    />
-                </div>
-            )}
-            <label htmlFor="title">Title</label>
-            <input
-                type="text"
-                id="title"
-                name="title"
-                value={form.title}
-                onChange={handleChange}
-                required
-            />
-            <label htmlFor="servings">Servings</label>
-            <input
-                type="number"
-                id="servings"
-                name="servings"
-                value={form.servings}
-                min={1}
-                step={1}
-                onChange={handleChange}
-                required
-            />
-            <label htmlFor="prep_time">Prep Time (min)</label>
-            <input
-                type="number"
-                id="prep_time"
-                name="prep_time"
-                value={form.prep_time}
-                min={0}
-                step={1}
-                onChange={handleChange}
-                required
-            />
-            <label htmlFor="cook_time">Cook Time (min)</label>
-            <input
-                type="number"
-                id="cook_time"
-                name="cook_time"
-                value={form.cook_time}
-                min={0}
-                step={1}
-                onChange={handleChange}
-                required
-            />
-            <label htmlFor="ingredients">Ingredients</label>
-            <textarea
-                id="ingredients"
-                name="ingredients"
-                value={form.ingredients}
-                onChange={handleChange}
-                rows={4}
-                required
-            />
-            <label htmlFor="instructions">Instructions</label>
-            <textarea
-                id="instructions"
-                name="instructions"
-                value={form.instructions}
-                onChange={handleChange}
-                rows={6}
-                required
-            />
-            <div className="recipe-actions">
-                <button type="button" onClick={() => setShowPreview((p) => !p)}>
-                    {showPreview ? "Hide" : "Show"} Markdown Preview
-                </button>
-                <button type="button" onClick={handleExportPaprika}>
-                    Export to Paprika
-                </button>
-                <button
-                    id="save-recipe-button"
-                    type="submit"
-                    disabled={loading}
+                    </Typography>
+                )}
+                <Typography
+                    variant="h5"
+                    sx={{
+                        color: "var(--primary-color)",
+                        mb: 2,
+                    }}
                 >
-                    {loading ? "Saving..." : "Save Recipe"}
-                </button>
-            </div>
-            {showPreview && (
-                <div className="markdown-preview">
-                    <div className="markdown-preview-title">Preview</div>
-                    <div
-                        dangerouslySetInnerHTML={{
-                            __html: marked.parse(form.instructions || ""),
+                    {form.title || "Untitled Recipe"}
+                </Typography>
+                {images.length > 0 && getSelectedCoverImage() && (
+                    <Box sx={{ mb: 2, textAlign: "center" }}>
+                        <img
+                            src={getSelectedCoverImage()!}
+                            alt="Selected cover"
+                            style={{
+                                width: 180,
+                                height: 180,
+                                objectFit: "cover",
+                                borderRadius: 12,
+                                border: "2px solid var(--primary-color)",
+                                boxShadow: "0 2px 8px rgba(0,0,0,0.08)",
+                            }}
+                        />
+                    </Box>
+                )}
+                <Grid container spacing={3} alignItems="stretch">
+                    <Grid size={{ xs: 12, sm: 6 }}>
+                        <TextField
+                            label="Title"
+                            name="title"
+                            value={form.title}
+                            onChange={handleChange}
+                            fullWidth
+                            required
+                        />
+                    </Grid>
+                    <Grid size={{ xs: 12, sm: 6 }}>
+                        <TextField
+                            label="Servings"
+                            name="servings"
+                            type="number"
+                            value={form.servings}
+                            onChange={handleChange}
+                            fullWidth
+                            required
+                            inputProps={{ min: 1, step: 1 }}
+                        />
+                    </Grid>
+                    <Grid size={{ xs: 12, sm: 6 }}>
+                        <TextField
+                            label="Prep Time (min)"
+                            name="prep_time"
+                            type="number"
+                            value={form.prep_time}
+                            onChange={handleChange}
+                            fullWidth
+                            required
+                            inputProps={{ min: 0, step: 1 }}
+                        />
+                    </Grid>
+                    <Grid size={{ xs: 12, sm: 6 }}>
+                        <TextField
+                            label="Cook Time (min)"
+                            name="cook_time"
+                            type="number"
+                            value={form.cook_time}
+                            onChange={handleChange}
+                            fullWidth
+                            required
+                            inputProps={{ min: 0, step: 1 }}
+                        />
+                    </Grid>
+                    <Grid size={{ xs: 24, sm: 12 }}>
+                        <TextField
+                            label="Ingredients"
+                            name="ingredients"
+                            value={form.ingredients}
+                            onChange={handleChange}
+                            fullWidth
+                            required
+                            multiline
+                            rows={6}
+                        />
+                    </Grid>
+                    <Grid size={{ xs: 24, sm: 12 }}>
+                        <TextField
+                            label="Instructions"
+                            name="instructions"
+                            value={form.instructions}
+                            onChange={handleChange}
+                            fullWidth
+                            required
+                            multiline
+                            rows={12}
+                        />
+                    </Grid>
+                </Grid>
+                <Box
+                    sx={{
+                        display: "flex",
+                        gap: 2,
+                        mt: 3,
+                        width: "100%",
+                    }}
+                >
+                    <Button
+                        variant="outlined"
+                        startIcon={<PreviewIcon />}
+                        onClick={() => setShowPreview((p) => !p)}
+                        fullWidth
+                        sx={{ flex: 1 }}
+                    >
+                        {showPreview ? "Hide" : "Show"} Preview
+                    </Button>
+                    <Button
+                        variant="outlined"
+                        onClick={handleExportPaprika}
+                        fullWidth
+                        sx={{ flex: 1, gap: 1 }}
+                    >
+                        <span className="pepper-icon">🌶️</span>
+                        Export to Paprika
+                    </Button>
+                    <Button
+                        id="save-recipe-button"
+                        type="submit"
+                        variant="contained"
+                        color="primary"
+                        startIcon={<SaveIcon />}
+                        disabled={loading}
+                        fullWidth
+                        sx={{ flex: 1 }}
+                    >
+                        {loading ? "Saving..." : "Save Recipe"}
+                    </Button>
+                </Box>
+                {showPreview && (
+                    <Paper
+                        elevation={1}
+                        sx={{
+                            mt: 3,
+                            p: 2,
+                            bgcolor: "#f6f8fa",
                         }}
-                    />
-                </div>
-            )}
-            {photoSuggestions.length > 0 && (
-                <div>
-                    <span className="photo-suggestions-label">
-                        Select a cover photo:
-                    </span>
-                    <div className="photo-suggestions">
-                        {photoSuggestions.map((img, idx) => (
-                            <img
-                                key={idx}
-                                src={
-                                    img.startsWith("data:image")
-                                        ? img
-                                        : `data:image/jpeg;base64,${img}`
-                                }
-                                alt={`Cover suggestion ${idx + 1}`}
-                                className={
-                                    form.selectedPhotoIdx === idx
-                                        ? "selected"
-                                        : ""
-                                }
-                                onClick={() => handlePhotoSelect(idx)}
-                            />
-                        ))}
-                    </div>
-                </div>
-            )}
-        </form>
+                    >
+                        <Typography
+                            variant="subtitle1"
+                            sx={{
+                                color: "var(--primary-color)",
+                                mb: 1,
+                            }}
+                        >
+                            Preview
+                        </Typography>
+                        <Divider sx={{ mb: 1 }} />
+                        <div
+                            dangerouslySetInnerHTML={{
+                                __html: marked.parse(form.instructions || ""),
+                            }}
+                        />
+                    </Paper>
+                )}
+                {images.length > 0 && (
+                    <Box sx={{ mt: 3 }}>
+                        <Typography
+                            className="photo-suggestions-label"
+                            sx={{ mb: 1 }}
+                        >
+                            Select a cover photo:
+                        </Typography>
+                        <Box
+                            sx={{
+                                display: "flex",
+                                gap: 2,
+                                flexWrap: "wrap",
+                                justifyContent: "center",
+                            }}
+                        >
+                            {images.map((img, idx) => (
+                                <img
+                                    key={idx}
+                                    src={
+                                        img.startsWith("data:image")
+                                            ? img
+                                            : `data:image/jpeg;base64,${img}`
+                                    }
+                                    alt={`Cover suggestion ${idx + 1}`}
+                                    style={{
+                                        width: 90,
+                                        height: 90,
+                                        objectFit: "cover",
+                                        borderRadius: 8,
+                                        border:
+                                            form.cover_image_idx === idx
+                                                ? "2.5px solid var(--primary-color)"
+                                                : "2px solid var(--border-color)",
+                                        cursor: "pointer",
+                                        boxShadow:
+                                            form.cover_image_idx === idx
+                                                ? "0 0 0 2px var(--primary-color)"
+                                                : undefined,
+                                    }}
+                                    onClick={() => handlePhotoSelect(idx)}
+                                />
+                            ))}
+                        </Box>
+                    </Box>
+                )}
+                <Button
+                    variant="contained"
+                    color="error"
+                    startIcon={<DeleteIcon />}
+                    onClick={handleDelete}
+                    fullWidth
+                    sx={{ mt: 3 }}
+                >
+                    Delete Recipe
+                </Button>
+            </form>
+        </Paper>
     );
 };
 

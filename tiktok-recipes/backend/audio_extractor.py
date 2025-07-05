@@ -1,4 +1,5 @@
 import re
+import subprocess
 from pathlib import Path
 
 import yt_dlp
@@ -77,7 +78,6 @@ def extract_n_frames(video_path: Path, n: int = 5) -> list[bytes]:
     frames = []
     try:
         import cv2
-        import numpy as np
 
         cap = cv2.VideoCapture(str(video_path))
         total_frames = int(cap.get(cv2.CAP_PROP_FRAME_COUNT))
@@ -98,7 +98,7 @@ def extract_n_frames(video_path: Path, n: int = 5) -> list[bytes]:
     return frames
 
 
-def download_audio_and_cover_from_tiktok(
+def download_audio_and_covers_from_tiktok(
     url: str, output_dir: str = "audio_files"
 ) -> tuple[Path | None, list[bytes] | None]:
     console.rule("[bold blue]TikTok Audio & Cover Download")
@@ -128,7 +128,6 @@ def download_audio_and_cover_from_tiktok(
         if not cover_bytes_list:
             console.print("[bold red]Error:[/bold red] Could not extract frames as JPEG.")
             return None, None
-        import subprocess
 
         ffmpeg_cmd = [
             "ffmpeg",

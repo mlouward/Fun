@@ -17,8 +17,8 @@ RUN uv export --no-dev > requirements.txt && \
 # Copy the rest of the application
 COPY . .
 
-# Expose the port the app runs on
-EXPOSE 8000
+# Set working directory to celery directory
+WORKDIR /app/celery_scripts
 
-# Command to run the application
-CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000"]
+# Command to run Celery worker
+CMD ["celery", "-A", "celery_worker.celery_app", "worker", "--loglevel=info"]
