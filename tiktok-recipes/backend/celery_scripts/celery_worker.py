@@ -6,6 +6,9 @@ from celery import Celery
 broker_url = os.getenv("CELERY_BROKER_URL", "redis://localhost:6379/0")
 backend_url = os.getenv("CELERY_BACKEND_URL", "redis://localhost:6379/0")
 
+print("BROKER", broker_url)
+print("BACKEND", backend_url)
+
 # Initialize Celery
 celery_app = Celery(
     "tiktok_recipes",
