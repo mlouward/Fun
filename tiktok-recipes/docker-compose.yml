@@ -14,13 +14,20 @@ services:
             - pgdata:/var/lib/postgresql/data
     backend:
         build: ./backend
+        tty: true
         env_file:
             - .env
         environment:
             - DATABASE_URL=postgresql+asyncpg://${POSTGRES_USER}:${POSTGRES_PASSWORD}@db:5432/${POSTGRES_DB}
+            - CELERY_BROKER_URL=redis://redis:6379/0
+            - CELERY_BACKEND_URL=redis://redis:6379/0
         command: ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000"]
         volumes:
-            - ./backend:/app
+            - ./backend/alembic:/app/alembic
+            - ./backend/auth.py:/app/auth.py
+            - ./backend/main.py:/app/main.py
+            - ./backend/models.py:/app/models.py
+            - ./backend/recipe.py:/app/recipe.py
             - ./data:/data
             - ./backend/audio_files:/app/audio_files
         depends_on:
@@ -49,13 +56,21 @@ services:
             - TZ=Europe/Paris
         volumes:
             - redis_data:/data
-    celery:
-        build:
-            context: ./backend
-            dockerfile: celery_scripts/Dockerfile
-        working_dir: /app/celery_scripts
+    nlp_worker:
+        deploy:
+            resources:
+                reservations:
+                    devices:
+                        - driver: nvidia
+                          count: all
+                          capabilities: [gpu]
+        build: ./nlp_processing
+        mem_limit: 8g
+        tty: true
+        working_dir: /app
         volumes:
-            - ./backend:/app
+            - ./nlp_processing:/app
+            - ./backend/models.py:/app/models.py
             - ./data:/data
             - ./backend/audio_files:/app/audio_files
         env_file:
@@ -65,6 +80,15 @@ services:
             - DATABASE_URL=postgresql+asyncpg://${POSTGRES_USER}:${POSTGRES_PASSWORD}@db:5432/${POSTGRES_DB}
             - CELERY_BROKER_URL=redis://redis:6379/0
             - CELERY_BACKEND_URL=redis://redis:6379/0
+        command:
+            [
+                "celery",
+                "-A",
+                "worker.celery_worker.celery_app",
+                "worker",
+                "--loglevel=info",
+                "--pool=gevent",
+            ]
         depends_on:
             - backend
             - redis

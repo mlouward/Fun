@@ -30,3 +30,10 @@ async def get_tiktok_video_description(url: str, ms_token: Optional[str] = None)
     except Exception as e:
         console.print(f"[bold red]Failed to fetch TikTok description:[/bold red] {e}")
         return None
+
+
+if __name__ == "__main__":
+    test_url = "https://www.tiktok.com/@noorbakesss/video/7430068759743728928"
+
+    console.print(f"[bold blue]Testing TikTok description fetch for URL:[/bold blue] {test_url}")
+    description = asyncio.run(get_tiktok_video_description(test_url))

@@ -1,5 +1,6 @@
 # User authentication routes and logic
 import os
+from datetime import datetime, timedelta
 
 from fastapi import APIRouter, Depends, HTTPException
 from jose import jwt
@@ -50,5 +51,8 @@ async def login(user: UserLogin, db: AsyncSession = Depends(get_db)) -> dict[str
     db_user = result.scalar()
     if not db_user or not pwd_context.verify(user.password, db_user.hashed_password):
         raise HTTPException(status_code=401, detail="Invalid credentials")
-    token = jwt.encode({"sub": db_user.username}, SECRET_KEY, algorithm=ALGORITHM)
+    access_token_expires = timedelta(days=1)
+    expire = datetime.utcnow() + access_token_expires
+    to_encode = {"sub": db_user.username, "exp": expire}
+    token = jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
     return {"access_token": token, "token_type": "bearer"}

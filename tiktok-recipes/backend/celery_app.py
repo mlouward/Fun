@@ -2,16 +2,15 @@ import os
 
 from celery import Celery
 
-# Get the environment variables
 broker_url = os.getenv("CELERY_BROKER_URL", "redis://localhost:6379/0")
 backend_url = os.getenv("CELERY_BACKEND_URL", "redis://localhost:6379/0")
 
-print("BROKER", broker_url)
-print("BACKEND", backend_url)
-
 # Initialize Celery
 celery_app = Celery(
-    "tiktok_recipes",
+    "backend",
     broker=broker_url,
     backend=backend_url,
+    include=[],  # No tasks are loaded by the backend service
 )
+
+celery_app.conf.update(task_serializer="json", accept_content=["json"], result_serializer="json")

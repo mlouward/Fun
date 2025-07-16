@@ -1,0 +1,47 @@
+{
+    "$schema": "http://json-schema.org/draft-07/schema#",
+    "title": "Paprika Recipe Schema",
+    "type": "object",
+    "properties": {
+        "name": {
+            "type": "string",
+            "description": "The title of the recipe."
+        },
+        "directions": {
+            "type": "string",
+            "description": "The step-by-step cooking instructions, with each step on a new line",
+            "examples": [
+                "1. Preheat the oven to 350°F.\n2. Mix flour and sugar in a bowl.\n3. Bake for 30 minutes.",
+                "1. Chop the vegetables.\n2. Heat oil in a pan.\n3. Cook the vegetables for 10 minutes."
+            ]
+        },
+        "ingredients": {
+            "type": "string",
+            "description": "A list of all ingredients, with each ingredient on a new line. Include quantities and units",
+            "examples": [
+                "2 cups flour\n1 cup milk\n 1/2 cup butter\n 1 tsp salt",
+                "1 cup sugar\n2 eggs\n1 tsp vanilla extract\n3 cups water"
+            ]
+        },
+        "servings": {
+            "type": "integer",
+            "description": "The number of servings the recipe makes, e.g., '4'"
+        },
+        "cook_time": {
+            "type": "integer",
+            "description": "The cooking time in minutes, e.g., '30'."
+        },
+        "prep_time": {
+            "type": "integer",
+            "description": "The preparation time in minutes, e.g., '15'."
+        }
+    },
+    "required": [
+        "name",
+        "directions",
+        "ingredients",
+        "servings",
+        "cook_time",
+        "prep_time"
+    ]
+}

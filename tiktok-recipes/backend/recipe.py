@@ -16,7 +16,7 @@ from sqlalchemy import and_, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from auth import ALGORITHM, SECRET_KEY
-from celery_scripts.tasks import process_tiktok_recipe
+from celery_app import celery_app
 from models import AsyncSessionLocal, Recipe, User
 
 # Set up basic logging
@@ -195,7 +195,10 @@ async def process_tiktok_url(
                 }
             )
             return result
-        process_tiktok_recipe.delay(current_user.id, request.url, tiktok_username, tiktok_video_id)
+        celery_app.send_task(
+            "worker.tasks.process_tiktok_recipe",
+            args=[current_user.id, request.url, tiktok_username, tiktok_video_id],
+        )
         return {"message": "Recipe is being processed. You will be notified when it is ready."}
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"An internal server error occurred: {e}")
@@ -241,9 +244,9 @@ async def update_recipe(
                 "cook_time": int(recipe.cook_time) if recipe.cook_time is not None else 0,
                 "ingredients": recipe.ingredients,
                 "instructions": recipe.instructions,
-                "cover_image_idx": (
-                    int(recipe.cover_image_idx) if recipe.cover_image_idx is not None else 0
-                ),
+                "cover_image_idx": int(recipe.cover_image_idx)
+                if recipe.cover_image_idx is not None
+                else 0,
                 "tiktok_username": getattr(recipe, "tiktok_username", None),
                 "tiktok_video_id": getattr(recipe, "tiktok_video_id", None),
             },

@@ -22,7 +22,82 @@ function App() {
     const [error, setError] = useState<string | null>(null);
     const [recipe, setRecipe] = useState<RecipeData | null>(null);
     const [step, setStep] = useState<"url" | "edit" | "done">("url");
-    const [token, setToken] = useState<string | null>(null);
+    const decodeJwt = (token: string) => {
+        try {
+            const base64Url = token.split(".")[1];
+            const base64 = base64Url.replace(/-/g, "+").replace(/_/g, "/");
+            const jsonPayload = decodeURIComponent(
+                atob(base64)
+                    .split("")
+                    .map(function (c) {
+                        return (
+                            "%" +
+                            ("00" + c.charCodeAt(0).toString(16)).slice(-2)
+                        );
+                    })
+                    .join("")
+            );
+            return JSON.parse(jsonPayload);
+        } catch (e) {
+            console.error("Failed to decode JWT:", e);
+            return null;
+        }
+    };
+
+    const [token, setToken] = useState<string | null>(() => {
+        const storedToken = localStorage.getItem("authToken");
+        if (storedToken) {
+            const decoded = decodeJwt(storedToken);
+            if (decoded && decoded.exp * 1000 > Date.now()) {
+                return storedToken;
+            } else {
+                localStorage.removeItem("authToken");
+                return null;
+            }
+        }
+        return null;
+    });
+
+    useEffect(() => {
+        let logoutTimer: NodeJS.Timeout;
+
+        if (token) {
+            localStorage.setItem("authToken", token);
+            const decoded = decodeJwt(token);
+            if (decoded && decoded.exp) {
+                const expirationTime = decoded.exp * 1000; // Convert to milliseconds
+                const timeUntilExpiration = expirationTime - Date.now();
+
+                // Log out 5 seconds before actual expiration
+                if (timeUntilExpiration > 5000) {
+                    logoutTimer = setTimeout(() => {
+                        setToken(null);
+                        setToastMsg(
+                            "Your session has expired. Please log in again."
+                        );
+                        setToastSeverity("info");
+                        setToastOpen(true);
+                    }, timeUntilExpiration - 5000);
+                } else {
+                    // If already expired or very close to expiration, log out immediately
+                    setToken(null);
+                    setToastMsg(
+                        "Your session has expired. Please log in again."
+                    );
+                    setToastSeverity("info");
+                    setToastOpen(true);
+                }
+            }
+        } else {
+            localStorage.removeItem("authToken");
+        }
+
+        return () => {
+            if (logoutTimer) {
+                clearTimeout(logoutTimer);
+            }
+        };
+    }, [token]);
     const [authMode, setAuthMode] = useState<"login" | "register">("login");
     const [showAccount, setShowAccount] = useState(false);
     const [page, setPage] = useState(1);
