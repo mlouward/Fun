@@ -9,12 +9,10 @@ RUN apt update && \
     rm -rf /var/lib/apt/lists/*
 
 # Add NVIDIA's repository for CUDA
-RUN curl -fsSL https://developer.download.nvidia.com/compute/cuda/repos/debian12/x86_64/3bf863cc.pub | apt-key add -
-RUN echo "deb https://developer.download.nvidia.com/compute/cuda/repos/debian12/x86_64/ /" > /etc/apt/sources.list.d/cuda.list
-RUN apt update
-
-# Install the CUDA toolkit required for building flash-attn
-RUN apt install -y cuda-toolkit-12-4
+RUN curl -fsSL https://developer.download.nvidia.com/compute/cuda/repos/debian12/x86_64/3bf863cc.pub | apt-key add - && \
+    echo "deb https://developer.download.nvidia.com/compute/cuda/repos/debian12/x86_64/ /" > /etc/apt/sources.list.d/cuda.list && \
+    apt update && \
+    apt install -y --no-install-recommends cuda-toolkit-12-4
 
 # Set environment variables for CUDA
 ENV CUDA_HOME=/usr/local/cuda-12.4
