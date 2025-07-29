@@ -49,6 +49,7 @@ const AuthForm: React.FC<AuthFormProps> = ({
             }
             onAuth(data.access_token);
         } catch (e) {
+            console.error("Fetch error:", e); // Log the full error object
             if (e instanceof Error) {
                 setError(e.message || "Auth failed");
             } else {
