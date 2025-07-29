@@ -4,12 +4,11 @@ from datetime import datetime, timedelta
 
 from fastapi import APIRouter, Depends, HTTPException
 from jose import jwt
+from models import AsyncSessionLocal, User
 from passlib.context import CryptContext
 from pydantic import BaseModel
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
-
-from models import AsyncSessionLocal, User
 
 SECRET_KEY = os.environ.get("SECRET_KEY", "dev-secret-key")
 ALGORITHM = "HS256"

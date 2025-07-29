@@ -7,17 +7,16 @@ import os
 import re
 from typing import Any, Optional
 
+from auth import ALGORITHM, SECRET_KEY
+from celery_app import celery_app
 from fastapi import APIRouter, Body, Depends, HTTPException, Query
 from fastapi.responses import JSONResponse, StreamingResponse
 from fastapi.security import OAuth2PasswordBearer
 from jose import JWTError, jwt
+from models import AsyncSessionLocal, Recipe, User
 from pydantic import BaseModel
 from sqlalchemy import and_, select
 from sqlalchemy.ext.asyncio import AsyncSession
-
-from auth import ALGORITHM, SECRET_KEY
-from celery_app import celery_app
-from models import AsyncSessionLocal, Recipe, User
 
 # Set up basic logging
 logging.basicConfig(level=logging.INFO)
