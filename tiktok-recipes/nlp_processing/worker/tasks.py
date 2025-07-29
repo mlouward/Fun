@@ -1,7 +1,10 @@
 import asyncio
 import logging
 import os
+import re
 from typing import Literal, Optional
+
+from TikTokApi import TikTokApi
 
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -17,10 +20,40 @@ from .celery_worker import celery_app
 logger = logging.getLogger(__name__)
 
 
-async def _process_recipe_async(user_id, url, tiktok_username, tiktok_video_id) -> Literal[True]:
+async def _process_recipe_async(user_id, url) -> Literal[True]:
     """Helper coroutine to run the actual processing logic."""
+    # Extract tiktok_username and tiktok_video_id from the URL
+    tiktok_username = None
+    tiktok_video_id = None
+
+    # Try to extract from standard TikTok URL first
+    match = re.search(r"tiktok\\.com/@([\\w.]+)/video/(\\d+)", url)
+    if match:
+        tiktok_username = match.group(1)
+        tiktok_video_id = match.group(2)
+    else:
+        # If it's a short URL (vm.tiktok.com), use TikTokApi to get the full info
+        try:
+            async with TikTokApi() as api:
+                ms_token = os.environ.get("ms_token")
+                await api.create_sessions(
+                    ms_tokens=[ms_token] if ms_token else None,
+                    num_sessions=1,
+                    sleep_after=3,
+                    browser=os.getenv("TIKTOK_BROWSER", "chromium"),
+                )
+                video = api.video(url=url)
+                video_info = await video.info()
+                tiktok_username = video_info.get("author", {}).get("uniqueId")
+                tiktok_video_id = video_info.get("id")
+        except Exception as e:
+            logger.error(f"Failed to get TikTok video info for URL {url}: {e}")
+            raise ValueError(f"Could not resolve TikTok video information for {url}")
+
+    if not tiktok_username or not tiktok_video_id:
+        raise ValueError(f"Could not extract TikTok username or video ID from URL: {url}")
     # Download audio and covers (sync)
-    audio_path, cover_bytes_list = download_audio_and_covers_from_tiktok(url)
+    audio_path, cover_bytes_list = download_audio_and_covers_from_tiktok(url, tiktok_video_id)
     if not audio_path or not cover_bytes_list:
         raise ValueError("Audio download failed.")
 
@@ -52,12 +85,12 @@ async def _process_recipe_async(user_id, url, tiktok_username, tiktok_video_id) 
 
 
 @celery_app.task
-def process_tiktok_recipe(user_id, url, tiktok_username, tiktok_video_id) -> Literal[True]:
+def process_tiktok_recipe(user_id, url) -> Literal[True]:
     """
     Synchronous Celery task that wraps the async processing logic.
     This avoids conflicts between the gevent pool and asyncio.
     """
-    return asyncio.run(_process_recipe_async(user_id, url, tiktok_username, tiktok_video_id))
+    return asyncio.run(_process_recipe_async(user_id, url))
 
 
 # Helper: save cover images to disk

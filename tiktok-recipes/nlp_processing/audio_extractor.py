@@ -99,15 +99,11 @@ def extract_n_frames(video_path: Path, n: int = 5) -> list[bytes]:
 
 
 def download_audio_and_covers_from_tiktok(
-    url: str, output_dir: str = "audio_files"
+    url: str, tiktok_video_id: str, output_dir: str = "audio_files"
 ) -> tuple[Path | None, list[bytes] | None]:
     console.rule("[bold blue]TikTok Audio & Cover Download")
     Path(output_dir).mkdir(parents=True, exist_ok=True)
-    video_id = re.search(r"video/([0-9]+)", url)
-    if not video_id:
-        console.print(f"[bold red]Error:[/bold red] Could not extract video ID from URL: {url}")
-        return None, None
-    video_id = video_id.group(1)
+    video_id = tiktok_video_id
     video_path = Path(output_dir) / f"{video_id}.mp4"
     audio_path = Path(output_dir) / f"{video_id}.mp3"
     video_ydl_opts = {

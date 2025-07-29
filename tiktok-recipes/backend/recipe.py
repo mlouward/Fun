@@ -173,30 +173,10 @@ async def process_tiktok_url(
 ) -> dict[Any, Any]:
     try:
         print(request, current_user)
-        match = re.search(r"tiktok\.com/@([\w.]+)/video/(\d+)", request.url)
-        tiktok_username = match.group(1) if match else None
-        tiktok_video_id = match.group(2) if match else None
-        if not tiktok_username or not tiktok_video_id:
-            raise HTTPException(status_code=400, detail="Invalid TikTok URL format.")
-        db_recipe = await get_user_recipe(db, current_user.id, tiktok_username, tiktok_video_id)
-        if db_recipe:
-            result = format_answer(
-                {
-                    "title": db_recipe.title,
-                    "servings": db_recipe.servings,
-                    "prep_time": db_recipe.prep_time,
-                    "cook_time": db_recipe.cook_time,
-                    "ingredients": db_recipe.ingredients,
-                    "instructions": db_recipe.instructions,
-                    "cover_image_idx": db_recipe.cover_image_idx,
-                    "tiktok_username": db_recipe.tiktok_username,
-                    "tiktok_video_id": db_recipe.tiktok_video_id,
-                }
-            )
-            return result
+        # Pass the URL directly to the Celery task for processing
         celery_app.send_task(
             "worker.tasks.process_tiktok_recipe",
-            args=[current_user.id, request.url, tiktok_username, tiktok_video_id],
+            args=[current_user.id, request.url],
         )
         return {"message": "Recipe is being processed. You will be notified when it is ready."}
     except Exception as e:
