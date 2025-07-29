@@ -1,6 +1,8 @@
+import re
+from datetime import datetime, timedelta
+from enum import Enum
 from pathlib import Path
 from typing import Dict, List, Optional
-from enum import Enum
 
 import matplotlib.pyplot as plt
 import pandas as pd
@@ -51,8 +53,40 @@ def get_station_data(station_name: str) -> Optional[pl.DataFrame]:
     return pl.read_parquet(parquet_path)
 
 
-def preprocess_data(df: pl.DataFrame) -> pd.DataFrame:
+def parse_period(period_str: Optional[str]) -> Optional[timedelta]:
+    if not period_str:
+        return None
+
+    match = re.match(r"(\d+)([dwmy])", period_str.lower())
+    if not match:
+        typer.echo(f"Invalid period format: {period_str}. Ignoring.")
+        return None
+
+    value, unit = int(match.group(1)), match.group(2)
+
+    if unit == 'd':
+        return timedelta(days=value)
+    elif unit == 'w':
+        return timedelta(weeks=value)
+    elif unit == 'm':
+        # Approximate month as 30 days
+        return timedelta(days=value * 30)
+    elif unit == 'y':
+        # Approximate year as 365 days
+        return timedelta(days=value * 365)
+    return None
+
+
+def preprocess_data(df: pl.DataFrame, period: Optional[str] = None) -> pd.DataFrame:
     """Preprocesses the raw data and prepares it for plotting."""
+
+    # Date filtering based on period
+    if period:
+        delta = parse_period(period)
+        if delta:
+            start_date = datetime.now().date() - delta
+            df = df.filter(pl.col("date") >= start_date)
+
     # Ensure correct dtypes and filter for the morning window
     processed_df = df.with_columns(
         pl.col("date").cast(pl.Date),
@@ -60,6 +94,8 @@ def preprocess_data(df: pl.DataFrame) -> pd.DataFrame:
     ).filter((pl.col("time").dt.hour() >= 7) & (pl.col("time").dt.hour() < 10))
 
     pdf = processed_df.to_pandas()
+    if pdf.empty:
+        return pdf
     pdf["minutes_since_midnight"] = pdf["time"].apply(lambda t: t.hour * 60 + t.minute)
     pdf["day_type"] = pdf["date"].apply(lambda d: "Weekday" if pd.to_datetime(d).weekday() < 5 else "Weekend")
     return pdf
@@ -126,13 +162,17 @@ def configure_plot_aesthetics(ax: Axes, station_name: str) -> None:
     ax.legend(title="Day Type", title_fontsize=10, loc="best")
 
 
-def plot_station_visual(station_name: str, mode: str, save_to_file: bool) -> None:
+def plot_station_visual(station_name: str, mode: str, save_to_file: bool, period: Optional[str] = None) -> None:
     """Orchestrates the creation of a single station visualization."""
     raw_data = get_station_data(station_name)
     if raw_data is None:
         return
 
-    plot_data = preprocess_data(raw_data)
+    plot_data = preprocess_data(raw_data, period)
+
+    if plot_data.empty:
+        print(f"No data available for station '{station_name}' in the selected period.")
+        return
 
     fig, ax = plt.subplots(figsize=(12, 6))
 
@@ -162,13 +202,16 @@ def main(
     save_to_file: bool = typer.Option(
         False, "-s", "--save-to-file", help="Save plots to file instead of displaying them."
     ),
+    period: Optional[str] = typer.Option(
+        None, "-p", "--period", help="Filter data for a specific period (e.g., '10d', '2w', '1m', '1y')."
+    ),
 ) -> None:
     """Main function to run the visualization script."""
     print("Starting Velib data visualization...")
 
     for station in TARGET_STATIONS:
         print(f"Processing station: {station}")
-        plot_station_visual(station, mode=mode.value, save_to_file=save_to_file)
+        plot_station_visual(station, mode=mode.value, save_to_file=save_to_file, period=period)
 
     print("Visualization complete!")
 
