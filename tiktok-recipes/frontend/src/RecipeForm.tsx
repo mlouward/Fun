@@ -11,6 +11,7 @@ import {
 import DeleteIcon from "@mui/icons-material/Delete";
 import PreviewIcon from "@mui/icons-material/Visibility";
 import SaveIcon from "@mui/icons-material/Save";
+import KeyboardBackspaceIcon from "@mui/icons-material/KeyboardBackspace";
 import { marked } from "marked";
 import { confirmAlert } from "react-confirm-alert";
 import "react-confirm-alert/src/react-confirm-alert.css";
@@ -21,6 +22,7 @@ interface RecipeFormProps {
     loading?: boolean;
     fetchWithAuth: (url: string, options?: RequestInit) => Promise<Response>;
     onDelete?: () => void;
+    onBack: () => void;
 }
 
 export interface RecipeData {
@@ -43,6 +45,7 @@ const RecipeForm: React.FC<RecipeFormProps> = ({
     loading,
     fetchWithAuth,
     onDelete,
+    onBack,
 }) => {
     const images = recipe.cover_images || [];
     const [form, setForm] = useState<RecipeData>(recipe);
@@ -164,12 +167,28 @@ const RecipeForm: React.FC<RecipeFormProps> = ({
             elevation={3}
             sx={{
                 p: { xs: 2, md: 4 },
-                maxWidth: 600,
+                width: "90%", // Take 90% width on all screens by default
+                maxWidth: 600, // Max width for larger screens
                 mx: "auto",
-                mt: 2,
+                mt: { xs: 2, md: 2 },
             }}
         >
             <form id="edit-recipe-form" onSubmit={handleSubmit}>
+                <Box
+                    sx={{
+                        display: "flex",
+                        justifyContent: "flex-start",
+                        mb: 2,
+                    }}
+                >
+                    <Button
+                        variant="outlined"
+                        startIcon={<KeyboardBackspaceIcon />}
+                        onClick={onBack}
+                    >
+                        Back to My Recipes
+                    </Button>
+                </Box>
                 {recipe && recipe.source_url && (
                     <Typography
                         variant="body2"
@@ -234,7 +253,7 @@ const RecipeForm: React.FC<RecipeFormProps> = ({
                             onChange={handleChange}
                             fullWidth
                             required
-                            inputProps={{ min: 1, step: 1 }}
+                            slotProps={{ htmlInput: { min: 1, step: 1 } }}
                         />
                     </Grid>
                     <Grid size={{ xs: 12, sm: 6 }}>
@@ -246,7 +265,7 @@ const RecipeForm: React.FC<RecipeFormProps> = ({
                             onChange={handleChange}
                             fullWidth
                             required
-                            inputProps={{ min: 0, step: 1 }}
+                            slotProps={{ htmlInput: { min: 0, step: 1 } }}
                         />
                     </Grid>
                     <Grid size={{ xs: 12, sm: 6 }}>
@@ -258,10 +277,10 @@ const RecipeForm: React.FC<RecipeFormProps> = ({
                             onChange={handleChange}
                             fullWidth
                             required
-                            inputProps={{ min: 0, step: 1 }}
+                            slotProps={{ htmlInput: { min: 0, step: 1 } }}
                         />
                     </Grid>
-                    <Grid size={{ xs: 24, sm: 12 }}>
+                    <Grid size={{ xs: 12, sm: 12 }}>
                         <TextField
                             label="Ingredients"
                             name="ingredients"
@@ -273,7 +292,7 @@ const RecipeForm: React.FC<RecipeFormProps> = ({
                             rows={6}
                         />
                     </Grid>
-                    <Grid size={{ xs: 24, sm: 12 }}>
+                    <Grid size={{ xs: 12, sm: 12 }}>
                         <TextField
                             label="Instructions"
                             name="instructions"
@@ -289,6 +308,7 @@ const RecipeForm: React.FC<RecipeFormProps> = ({
                 <Box
                     sx={{
                         display: "flex",
+                        flexDirection: { xs: "column", sm: "row" },
                         gap: 2,
                         mt: 3,
                         width: "100%",

@@ -6,7 +6,12 @@ import {
     Typography,
     useMediaQuery,
     useTheme,
+    IconButton,
+    Toolbar,
+    CircularProgress,
 } from "@mui/material";
+import { createTheme, ThemeProvider } from "@mui/material/styles";
+import MenuIcon from "@mui/icons-material/Menu";
 import AuthForm from "./AuthForm";
 import MyRecipesPage from "./MyRecipesPage";
 import RecipeForm from "./RecipeForm";
@@ -91,6 +96,7 @@ function App() {
         } else {
             localStorage.removeItem("authToken");
         }
+        setLoadingApp(false); // Set loading to false after auth check
 
         return () => {
             if (logoutTimer) {
@@ -106,8 +112,57 @@ function App() {
     const [toastOpen, setToastOpen] = useState(false);
     const [toastMsg, setToastMsg] = useState("");
     const [toastSeverity, setToastSeverity] = useState<AlertColor>("info");
+    const [loadingApp, setLoadingApp] = useState(true); // New state for app loading
     const theme = useTheme();
     const isDesktop = useMediaQuery(theme.breakpoints.up("md"));
+
+    const tiktokTheme = createTheme({
+        palette: {
+            primary: {
+                main: "#ff3b5c", // Your TikTok primary color
+            },
+        },
+        components: {
+            MuiButton: {
+                styleOverrides: {
+                    root: {
+                        fontWeight: 700,
+                        textTransform: "none",
+                        borderRadius: "8px",
+                        border: "2px solid #ff3b5c",
+                        "&:hover": {
+                            transform: "translateY(-2px)",
+                            boxShadow: "0 4px 8px rgba(0, 0, 0, 0.1)",
+                        },
+                    },
+                    containedPrimary: {
+                        color: "#fff",
+                        backgroundColor: "#ff3b5c",
+                        "&:hover": {
+                            backgroundColor: "#e03050",
+                        },
+                    },
+                    outlinedPrimary: {
+                        color: "#ff3b5c",
+                        borderColor: "#ff3b5c",
+                        "&:hover": {
+                            backgroundColor: "rgba(255, 59, 92, 0.04)",
+                        },
+                    },
+                    textPrimary: {
+                        color: "#ff3b5c",
+                        "&:hover": {
+                            backgroundColor: "rgba(255, 59, 92, 0.04)",
+                        },
+                    },
+                },
+            },
+        },
+    });
+
+    const handleDrawerToggle = () => {
+        setSidebarOpen(!sidebarOpen);
+    };
 
     const fetchWithAuth = async (url: string, options: RequestInit = {}) => {
         // Always use VITE_API_URL if it's set, otherwise use a default
@@ -220,133 +275,200 @@ function App() {
     };
 
     return (
-        <Box
-            sx={{
-                display: "flex",
-                minHeight: "100vh",
-                bgcolor: "var(--background-color)",
-            }}
-        >
-            {token && (
-                <Sidebar
-                    open={sidebarOpen}
-                    isDesktop={isDesktop}
-                    showAccount={showAccount}
-                    onHome={() => {
-                        setShowAccount(false);
-                        setStep("url");
-                        setSidebarOpen(false);
-                    }}
-                    onMyRecipes={() => {
-                        setShowAccount(true);
-                        setStep("url");
-                        setSidebarOpen(false);
-                    }}
-                    onClose={() => setSidebarOpen(false)}
-                />
-            )}
-            <Snackbar
-                open={toastOpen}
-                autoHideDuration={5000}
-                onClose={() => setToastOpen(false)}
-                anchorOrigin={{ vertical: "top", horizontal: "center" }}
-            >
-                <MuiAlert
-                    onClose={() => setToastOpen(false)}
-                    severity={toastSeverity}
-                    elevation={6}
-                    variant="filled"
-                    sx={{ width: "100%" }}
-                >
-                    {toastMsg}
-                </MuiAlert>
-            </Snackbar>
-            {/* Main content */}
+        <ThemeProvider theme={tiktokTheme}>
             <Box
-                component="main"
-                sx={{ flex: 1, minWidth: 0, p: { xs: 2, md: 5 }, mt: 8 }}
+                sx={{
+                    display: "flex",
+                    minHeight: "100vh",
+                    bgcolor: "var(--background-color)",
+                }}
             >
-                <Container maxWidth="md">
-                    <Box sx={{ mb: 4 }}>
-                        <Typography
-                            variant="h4"
-                            sx={{ color: "var(--primary-color)", mb: 1 }}
-                        >
-                            TikTok Recipe Transcriber
-                        </Typography>
-                        <Typography
-                            variant="subtitle1"
-                            sx={{ color: "var(--light-text-color)" }}
-                        >
-                            {token && showAccount
-                                ? "Your saved TikTok recipes"
-                                : "Paste a TikTok recipe URL to transcribe and edit the recipe!"}
-                        </Typography>
+                {loadingApp ? (
+                    <Box
+                        sx={{
+                            display: "flex",
+                            justifyContent: "center",
+                            alignItems: "center",
+                            height: "100vh",
+                            width: "100vw",
+                            position: "fixed",
+                            top: 0,
+                            left: 0,
+                            bgcolor: "rgba(255, 255, 255, 0.8)",
+                            zIndex: 9999,
+                        }}
+                    >
+                        <CircularProgress color="primary" />
                     </Box>
-                    {!token ? (
-                        <AuthForm
-                            onAuth={setToken}
-                            mode={authMode}
-                            setMode={setAuthMode}
-                            loading={loading}
-                        />
-                    ) : showAccount ? (
-                        <MyRecipesPage
-                            recipes={recipes}
-                            total={total}
-                            page={page}
-                            pageSize={pageSize}
-                            onPageChange={setPage}
-                            onPageSizeChange={(size) => {
-                                setPageSize(size);
-                                setPage(1);
-                            }}
-                            onViewRecipe={handleViewRecipe}
-                        />
-                    ) : (
-                        <>
-                            {step === "url" && (
-                                <TiktokUrlForm
-                                    onProcess={handleProcessUrl}
-                                    loading={loading}
-                                    error={error}
-                                />
-                            )}
-                            {step === "edit" && recipe && (
-                                <RecipeForm
-                                    recipe={recipe}
-                                    onSave={handleSaveRecipe}
-                                    loading={loading}
-                                    fetchWithAuth={fetchWithAuth}
-                                    onDelete={handleDeleteRecipe}
-                                />
-                            )}
-                            {step === "done" && (
-                                <Box sx={{ textAlign: "center", mt: 6 }}>
-                                    <Typography
-                                        variant="h5"
-                                        sx={{ color: "var(--primary-color)" }}
-                                    >
-                                        Recipe saved!
-                                    </Typography>
-                                    <Button
-                                        sx={{ mt: 3 }}
-                                        variant="contained"
-                                        color="primary"
-                                        onClick={() => {
+                ) : (
+                    <Sidebar
+                        open={sidebarOpen}
+                        isDesktop={isDesktop}
+                        showAccount={showAccount}
+                        onHome={() => {
+                            setShowAccount(false);
+                            setStep("url");
+                            setSidebarOpen(false);
+                        }}
+                        onMyRecipes={() => {
+                            setShowAccount(true);
+                            setStep("url");
+                            setSidebarOpen(false);
+                        }}
+                        onClose={() => setSidebarOpen(false)}
+                    />
+                )}
+                <Snackbar
+                    open={toastOpen}
+                    autoHideDuration={5000}
+                    onClose={() => setToastOpen(false)}
+                    anchorOrigin={{ vertical: "top", horizontal: "center" }}
+                >
+                    <MuiAlert
+                        onClose={() => setToastOpen(false)}
+                        severity={toastSeverity}
+                        elevation={6}
+                        variant="filled"
+                        sx={{ width: "100%" }}
+                    >
+                        {toastMsg}
+                    </MuiAlert>
+                </Snackbar>
+                {/* Main content */}
+
+                <Box
+                    component="main"
+                    sx={{
+                        flexGrow: 1,
+                        p: { xs: 1, sm: 3 }, // Reduced padding for extra-small screens
+                        width: { sm: `calc(100% - ${isDesktop ? 260 : 0}px)` },
+                        ml: { sm: `${isDesktop ? 260 : 0}px` },
+                        mt: { xs: '64px', md: 0 },
+                    }}
+                >
+                    <Toolbar
+                        sx={{
+                            display: { xs: "flex", md: "none" },
+                            justifyContent: "space-between",
+                            alignItems: "center",
+                            position: "fixed",
+                            top: 0,
+                            left: 0,
+                            right: 0,
+                            height: 64,
+                            bgcolor: "var(--background-color)",
+                            zIndex: 1200,
+                            boxShadow: "0 2px 4px rgba(0,0,0,0.1)",
+                            p: 2,
+                        }}
+                    >
+                        {!isDesktop && token && (
+                            <IconButton
+                                color="inherit"
+                                aria-label="open drawer"
+                                edge="start"
+                                onClick={handleDrawerToggle}
+                                sx={{ color: "var(--primary-color)" }}
+                            >
+                                <MenuIcon />
+                            </IconButton>
+                        )}
+                        <Typography
+                            variant="h6"
+                            noWrap
+                            sx={{ color: "var(--primary-color)" }}
+                        >
+                            TikTok Recipes
+                        </Typography>
+                    </Toolbar>
+                    <Container maxWidth={isDesktop ? "md" : false} sx={{ pt: { xs: '64px', md: 0 } }}>
+                        <Box sx={{ mb: 4 }}>
+                            <Typography
+                                variant="h4"
+                                sx={{ color: "var(--primary-color)", mb: 1 }}
+                            >
+                                TikTok Recipe Transcriber
+                            </Typography>
+                            <Typography
+                                variant="subtitle1"
+                                sx={{ color: "var(--light-text-color)" }}
+                            >
+                                {token && showAccount
+                                    ? "Your saved TikTok recipes"
+                                    : "Paste a TikTok recipe URL to transcribe and edit the recipe!"}
+                            </Typography>
+                        </Box>
+                        {!token ? (
+                            <AuthForm
+                                onAuth={setToken}
+                                mode={authMode}
+                                setMode={setAuthMode}
+                                loading={loading}
+                            />
+                        ) : showAccount ? (
+                            <MyRecipesPage
+                                recipes={recipes}
+                                total={total}
+                                page={page}
+                                pageSize={pageSize}
+                                onPageChange={setPage}
+                                onPageSizeChange={(size) => {
+                                    setPageSize(size);
+                                    setPage(1);
+                                }}
+                                onViewRecipe={handleViewRecipe}
+                            />
+                        ) : (
+                            <>
+                                {step === "url" && (
+                                    <TiktokUrlForm
+                                        onProcess={handleProcessUrl}
+                                        loading={loading}
+                                        error={error}
+                                    />
+                                )}
+                                {step === "edit" && recipe && (
+                                    <RecipeForm
+                                        recipe={recipe}
+                                        onSave={handleSaveRecipe}
+                                        loading={loading}
+                                        fetchWithAuth={fetchWithAuth}
+                                        onDelete={handleDeleteRecipe}
+                                        onBack={() => {
                                             setShowAccount(true);
                                             setStep("url");
                                         }}
-                                    >
-                                        Back to My Recipes
-                                    </Button>
-                                </Box>
-                            )}
-                        </>
-                    )}
-                </Container>
+                                    />
+                                )}
+                                {step === "done" && (
+                                    <Box sx={{ textAlign: "center", mt: 6 }}>
+                                        <Typography
+                                            variant="h5"
+                                            sx={{
+                                                color: "var(--primary-color)",
+                                            }}
+                                        >
+                                            Recipe saved!
+                                        </Typography>
+                                        <Button
+                                            sx={{ mt: 3 }}
+                                            variant="contained"
+                                            color="primary"
+                                            onClick={() => {
+                                                setShowAccount(true);
+                                                setStep("url");
+                                            }}
+                                        >
+                                            Back to My Recipes
+                                        </Button>
+                                    </Box>
+                                )}
+                            </>
+                        )}
+                    </Container>
+                </Box>
             </Box>
-        </Box>
+        </ThemeProvider>
     );
 }
 

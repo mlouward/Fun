@@ -24,7 +24,12 @@ const MyRecipesPage: React.FC<MyRecipesPageProps> = ({
 }) => {
     const pageCount = Math.ceil(total / pageSize);
     return (
-        <Box>
+        <Box sx={{
+            width: '90%',
+            maxWidth: { xs: '90vw', sm: 600 }, // Use 90vw for xs, 600px for sm and up
+            mx: 'auto',
+            p: { xs: 0, md: 2 } // Add some padding for desktop if needed
+        }}>
             <Typography
                 variant="h5"
                 sx={{ color: "var(--primary-color)", mb: 3 }}
@@ -135,9 +140,11 @@ const MyRecipesPage: React.FC<MyRecipesPageProps> = ({
             <Box
                 sx={{
                     display: "flex",
+                    flexDirection: { xs: "column", sm: "row" },
                     alignItems: "center",
                     justifyContent: "space-between",
                     mt: 3,
+                    gap: { xs: 2, sm: 0 },
                 }}
             >
                 <Pagination

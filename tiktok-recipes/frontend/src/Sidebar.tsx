@@ -26,7 +26,7 @@ const Sidebar: React.FC<SidebarProps> = ({
 }) => (
     <Drawer
         variant={isDesktop ? "permanent" : "temporary"}
-        open={isDesktop ? true : open}
+        open={open}
         onClose={onClose}
         ModalProps={{ keepMounted: true }}
         sx={{
@@ -40,6 +40,7 @@ const Sidebar: React.FC<SidebarProps> = ({
                 flexDirection: "column",
                 alignItems: "flex-start",
                 justifyContent: "flex-start",
+                backgroundColor: "var(--background-color)", // Ensure it matches app background
             },
         }}
     >

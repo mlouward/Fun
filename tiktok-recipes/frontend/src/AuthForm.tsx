@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import { Button, Typography, Box } from "@mui/material";
 
 interface AuthFormProps {
     onAuth: (token: string) => void;
@@ -79,7 +80,14 @@ const AuthForm: React.FC<AuthFormProps> = ({
                     mode === "login" ? "current-password" : "new-password"
                 }
             />
-            <button type="submit" disabled={loading}>
+            <Button
+                type="submit"
+                variant="contained"
+                color="primary"
+                disabled={loading}
+                fullWidth
+                sx={{ mt: 2, mb: 1 }}
+            >
                 {loading
                     ? mode === "login"
                         ? "Logging in..."
@@ -87,27 +95,40 @@ const AuthForm: React.FC<AuthFormProps> = ({
                     : mode === "login"
                     ? "Login"
                     : "Register"}
-            </button>
-            <div style={{ marginTop: 8 }}>
+            </Button>
+            <Box sx={{ mt: 1 }}>
                 {mode === "login" ? (
-                    <span>
+                    <Typography variant="body2">
                         No account?{" "}
-                        <button
-                            type="button"
+                        <Button
+                            variant="text"
                             onClick={() => setMode("register")}
+                            sx={{
+                                p: 0,
+                                minWidth: 0,
+                                verticalAlign: "baseline",
+                            }}
                         >
                             Register
-                        </button>
-                    </span>
+                        </Button>
+                    </Typography>
                 ) : (
-                    <span>
+                    <Typography variant="body2">
                         Already have an account?{" "}
-                        <button type="button" onClick={() => setMode("login")}>
+                        <Button
+                            variant="text"
+                            onClick={() => setMode("login")}
+                            sx={{
+                                p: 0,
+                                minWidth: 0,
+                                verticalAlign: "baseline",
+                            }}
+                        >
                             Login
-                        </button>
-                    </span>
+                        </Button>
+                    </Typography>
                 )}
-            </div>
+            </Box>
             {error && <div className="error-message">{error}</div>}
         </form>
     );
