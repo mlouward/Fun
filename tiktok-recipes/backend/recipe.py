@@ -1,10 +1,7 @@
-import base64
 import gzip
 import io
 import json
 import logging
-import os
-import re
 from typing import Any, Optional
 
 from fastapi import APIRouter, Body, Depends, HTTPException, Query

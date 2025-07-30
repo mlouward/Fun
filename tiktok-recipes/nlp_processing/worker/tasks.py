@@ -1,22 +1,21 @@
-import asyncio
 import json
 import logging
 import os
 import re
 from typing import Literal, Optional
 
+from asgiref.sync import async_to_sync
+from sqlalchemy.ext.asyncio import AsyncSession
+from TikTokApi import TikTokApi
+
 from audio_extractor import download_audio_and_covers_from_tiktok
 from models import AsyncSessionLocal, Recipe
 from nlp_processor import extract_recipe_info
 from paprika_exporter import PaprikaRecipe
-from sqlalchemy.ext.asyncio import AsyncSession
 from tiktok_description import get_tiktok_video_description
-from TikTokApi import TikTokApi
 from transcriber import transcribe_audio
 
 from .celery_worker import celery_app
-
-from asgiref.sync import async_to_sync
 
 logger = logging.getLogger(__name__)
 
