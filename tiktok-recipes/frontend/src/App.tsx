@@ -381,7 +381,7 @@ function App() {
                         </Typography>
                     </Toolbar>
                     <Container
-                        maxWidth={isDesktop ? "md" : false}
+                        maxWidth={isDesktop ? "lg" : false}
                         sx={{ pt: { xs: "64px", md: 0 } }}
                     >
                         <Box sx={{ mb: 4 }}>

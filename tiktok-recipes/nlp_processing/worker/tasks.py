@@ -4,7 +4,6 @@ import os
 import re
 from typing import Literal, Optional
 
-from asgiref.sync import async_to_sync
 from sqlalchemy.ext.asyncio import AsyncSession
 from TikTokApi import TikTokApi
 
@@ -86,12 +85,12 @@ async def _process_recipe_async(user_id, url) -> Literal[True]:
 
 
 @celery_app.task
-def process_tiktok_recipe(user_id, url) -> Literal[True]:
+async def process_tiktok_recipe(user_id, url) -> Literal[True]:
     """
     Synchronous Celery task that wraps the async processing logic.
     This avoids conflicts between the gevent pool and asyncio.
     """
-    return async_to_sync(_process_recipe_async)(user_id, url)
+    return await _process_recipe_async(user_id, url)
 
 
 # Helper: save cover images to disk

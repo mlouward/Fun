@@ -89,7 +89,7 @@ services:
                 "worker.celery_worker.celery_app",
                 "worker",
                 "--loglevel=info",
-                "--pool=gevent",
+                "--pool=solo",
             ]
         depends_on:
             - backend

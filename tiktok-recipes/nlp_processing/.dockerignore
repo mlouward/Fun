@@ -9,3 +9,5 @@ __pypackages__
 .pytest_cache
 .coverage
 .DS_Store
+audio_files/
+data/

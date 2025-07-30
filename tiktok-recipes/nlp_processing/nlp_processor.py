@@ -5,8 +5,7 @@ import re
 from pathlib import Path
 
 import torch
-from transformers import (AutoModelForCausalLM, AutoTokenizer,
-                          BitsAndBytesConfig, pipeline)
+from transformers import AutoModelForCausalLM, AutoTokenizer, BitsAndBytesConfig, pipeline
 
 # Configure logging
 logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s")
@@ -91,7 +90,7 @@ You must adhere to the following rules:
 3.  **Accurate Extraction**: Extract measurements, ingredients, and steps precisely as mentioned in the transcript.
 4.  **Data Types**: Ensure all fields have the correct data type as specified in the schema (e.g., 'servings' must be an integer).
 5.  **Formatting**:
-    - `ingredients`: List each ingredient on a new line (use '\n').
+    - `ingredients`: List each ingredient with its measurement on a new line (use '\n').
     - `directions`: Number each step and list it on a new line (e.g., "1. First step.\n2. Second step.").
 
 **JSON Schema to Follow:**

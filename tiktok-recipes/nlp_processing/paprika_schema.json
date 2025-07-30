@@ -19,7 +19,7 @@
             "type": "string",
             "description": "A list of all ingredients, with each ingredient on a new line. Include quantities and units",
             "examples": [
-                "2 cups flour\n1 cup milk\n 1/2 cup butter\n 1 tsp salt",
+                "2 cups flour\n1 cup milk\n1/2 cup butter\n1 tsp salt",
                 "1 cup sugar\n2 eggs\n1 tsp vanilla extract\n3 cups water"
             ]
         },
