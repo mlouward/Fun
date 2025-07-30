@@ -114,7 +114,7 @@ function App() {
     const [toastSeverity, setToastSeverity] = useState<AlertColor>("info");
     const [loadingApp, setLoadingApp] = useState(true); // New state for app loading
     const theme = useTheme();
-    const isDesktop = useMediaQuery(theme.breakpoints.up("sm"));
+    const isDesktop = useMediaQuery(theme.breakpoints.up("md"));
 
     const tiktokTheme = createTheme({
         palette: {
