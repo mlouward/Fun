@@ -33,7 +33,7 @@ export interface RecipeData {
     ingredients: string;
     instructions: string;
     cover_image_idx: number;
-    cover_images?: string[];
+    cover_image_paths?: string[]; // Paths to images (e.g., URLs)
     tiktok_username?: string;
     tiktok_video_id?: string;
     source_url?: string;
@@ -47,7 +47,7 @@ const RecipeForm: React.FC<RecipeFormProps> = ({
     onDelete,
     onBack,
 }) => {
-    const images = recipe.cover_images || [];
+    const images = recipe.cover_image_paths || [];
     const [form, setForm] = useState<RecipeData>(recipe);
     const [showPreview, setShowPreview] = useState(false);
 
@@ -87,11 +87,7 @@ const RecipeForm: React.FC<RecipeFormProps> = ({
             form.cover_image_idx >= 0 &&
             form.cover_image_idx < images.length
         ) {
-            const img = images[form.cover_image_idx];
-            if (img && !img.startsWith("data:image")) {
-                return `data:image/jpeg;base64,${img}`;
-            }
-            return img;
+            return `/images/${images[form.cover_image_idx]}`;
         }
         return null;
     };
@@ -390,11 +386,7 @@ const RecipeForm: React.FC<RecipeFormProps> = ({
                             {images.map((img, idx) => (
                                 <img
                                     key={idx}
-                                    src={
-                                        img.startsWith("data:image")
-                                            ? img
-                                            : `data:image/jpeg;base64,${img}`
-                                    }
+                                    src={`/images/${img}`}
                                     alt={`Cover suggestion ${idx + 1}`}
                                     style={{
                                         width: 90,

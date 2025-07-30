@@ -61,23 +61,19 @@ const MyRecipesPage: React.FC<MyRecipesPageProps> = ({
                             onClick={() => onViewRecipe(idx)}
                         >
                             {/* Thumbnail image */}
-                            {r.cover_images && r.cover_images.length > 0 ? (
+                            {r.cover_image_paths && r.cover_image_paths.length > 0 ? (
                                 (() => {
                                     const selectedIdx =
                                         typeof r.cover_image_idx === "number" &&
                                         r.cover_image_idx >= 0 &&
                                         r.cover_image_idx <
-                                            r.cover_images.length
+                                            r.cover_image_paths.length
                                             ? r.cover_image_idx
                                             : 0;
-                                    const imgSrc = r.cover_images[selectedIdx];
+                                    const imgSrc = `/images/${r.cover_image_paths[selectedIdx]}`;
                                     return (
                                         <img
-                                            src={
-                                                imgSrc.startsWith("data:image")
-                                                    ? imgSrc
-                                                    : `data:image/jpeg;base64,${imgSrc}`
-                                            }
+                                            src={imgSrc}
                                             alt="Recipe thumbnail"
                                             style={{
                                                 width: 48,

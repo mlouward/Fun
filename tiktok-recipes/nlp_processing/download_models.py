@@ -1,12 +1,8 @@
 import logging
 import os
 
-from transformers import (
-    AutoModelForCausalLM,
-    AutoModelForSpeechSeq2Seq,
-    AutoProcessor,
-    AutoTokenizer,
-)
+from transformers import (AutoModelForCausalLM, AutoModelForSpeechSeq2Seq,
+                          AutoProcessor, AutoTokenizer)
 
 # Configure basic logging
 logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s")

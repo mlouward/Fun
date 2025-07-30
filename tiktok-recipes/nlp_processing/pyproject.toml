@@ -27,6 +27,7 @@ dependencies = [
     "transformers[torch]==4.49.0",
     "flash_attn==2.7.4.post1",
     "bitsandbytes>=0.46.1",
+    "asgiref>=3.8.1",
 ]
 
 [tool.uv]

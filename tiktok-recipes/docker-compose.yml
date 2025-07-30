@@ -47,6 +47,8 @@ services:
             - "80:80"
         depends_on:
             - backend
+        volumes:
+            - ./data:/app/data
     redis:
         image: redis:latest
         restart: always

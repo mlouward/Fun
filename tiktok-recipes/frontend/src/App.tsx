@@ -114,7 +114,7 @@ function App() {
     const [toastSeverity, setToastSeverity] = useState<AlertColor>("info");
     const [loadingApp, setLoadingApp] = useState(true); // New state for app loading
     const theme = useTheme();
-    const isDesktop = useMediaQuery(theme.breakpoints.up("md"));
+    const isDesktop = useMediaQuery(theme.breakpoints.up("sm"));
 
     const tiktokTheme = createTheme({
         palette: {
@@ -342,8 +342,7 @@ function App() {
                         flexGrow: 1,
                         p: { xs: 1, sm: 3 }, // Reduced padding for extra-small screens
                         width: { sm: `calc(100% - ${isDesktop ? 260 : 0}px)` },
-                        ml: { sm: `${isDesktop ? 260 : 0}px` },
-                        mt: { xs: '64px', md: 0 },
+                        mt: { xs: "64px", md: 0 },
                     }}
                 >
                     <Toolbar
@@ -381,7 +380,10 @@ function App() {
                             TikTok Recipes
                         </Typography>
                     </Toolbar>
-                    <Container maxWidth={isDesktop ? "md" : false} sx={{ pt: { xs: '64px', md: 0 } }}>
+                    <Container
+                        maxWidth={isDesktop ? "md" : false}
+                        sx={{ pt: { xs: "64px", md: 0 } }}
+                    >
                         <Box sx={{ mb: 4 }}>
                             <Typography
                                 variant="h4"

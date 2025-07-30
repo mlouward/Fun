@@ -1,21 +1,22 @@
 import asyncio
+import json
 import logging
 import os
 import re
 from typing import Literal, Optional
 
-from TikTokApi import TikTokApi
-
-from sqlalchemy.ext.asyncio import AsyncSession
-
 from audio_extractor import download_audio_and_covers_from_tiktok
 from models import AsyncSessionLocal, Recipe
 from nlp_processor import extract_recipe_info
 from paprika_exporter import PaprikaRecipe
+from sqlalchemy.ext.asyncio import AsyncSession
 from tiktok_description import get_tiktok_video_description
+from TikTokApi import TikTokApi
 from transcriber import transcribe_audio
 
 from .celery_worker import celery_app
+
+from asgiref.sync import async_to_sync
 
 logger = logging.getLogger(__name__)
 
@@ -70,7 +71,7 @@ async def _process_recipe_async(user_id, url) -> Literal[True]:
 
     paprika_recipe = PaprikaRecipe(recipe_info, source_url=url, photo_data=cover_bytes_list[0])
     os.remove(audio_path)
-    save_cover_images_to_disk(tiktok_video_id, cover_bytes_list, base_dir="/data")
+    file_paths = save_cover_images_to_disk(tiktok_video_id, cover_bytes_list, base_dir="/data")
 
     # Database access (async)
     async with AsyncSessionLocal() as db:
@@ -80,6 +81,7 @@ async def _process_recipe_async(user_id, url) -> Literal[True]:
             paprika_recipe.data,
             tiktok_username,
             tiktok_video_id,
+            cover_image_paths=file_paths,
         )
     return True
 
@@ -90,7 +92,7 @@ def process_tiktok_recipe(user_id, url) -> Literal[True]:
     Synchronous Celery task that wraps the async processing logic.
     This avoids conflicts between the gevent pool and asyncio.
     """
-    return asyncio.run(_process_recipe_async(user_id, url))
+    return async_to_sync(_process_recipe_async)(user_id, url)
 
 
 # Helper: save cover images to disk
@@ -116,16 +118,17 @@ def save_cover_images_to_disk(
     file_paths = []
     for idx, img_bytes in enumerate(cover_bytes_list):
         file_name = f"cover_{idx + 1}.jpg"
-        file_path = os.path.join(target_dir, file_name)
+        absolute_file_path = os.path.join(target_dir, file_name)
+        relative_file_path = f"{tiktok_video_id}/{file_name}"  # Path relative to base_dir
         try:
-            with open(file_path, "wb") as f:
+            with open(absolute_file_path, "wb") as f:
                 f.write(img_bytes)
-            file_paths.append(file_path)
-            logger.info(f"Successfully saved image: {file_path}")
+            file_paths.append(relative_file_path)
+            logger.info(f"Successfully saved image: {absolute_file_path}")
         except IOError as e:
-            logger.error(f"Error saving image {file_path}: {e}")
+            logger.error(f"Error saving image {absolute_file_path}: {e}")
         except Exception as e:
-            logger.error(f"An unexpected error occurred while saving {file_path}: {e}")
+            logger.error(f"An unexpected error occurred while saving {absolute_file_path}: {e}")
 
     logger.info(f"Finished saving images. Total saved: {len(file_paths)}")
     return file_paths
@@ -138,6 +141,7 @@ async def create_recipe_from_dict(
     data: dict,
     tiktok_username: Optional[str] = None,
     tiktok_video_id: Optional[str] = None,
+    cover_image_paths: Optional[list[str]] = None,
 ) -> Recipe:
     def safe_int(val, default=0):
         try:
@@ -154,10 +158,12 @@ async def create_recipe_from_dict(
         ingredients=data.get("ingredients", ""),
         instructions=data.get("directions") or data.get("instructions", ""),
         cover_image_idx=safe_int(data.get("cover_image_idx")),
+        cover_image_paths=json.dumps(cover_image_paths) if cover_image_paths else None,
         tiktok_username=tiktok_username,
         tiktok_video_id=tiktok_video_id,
     )
     db.add(recipe)
+    await db.flush()
     await db.commit()
     await db.refresh(recipe)
     return recipe

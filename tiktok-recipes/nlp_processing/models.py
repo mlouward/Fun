@@ -30,6 +30,9 @@ class Recipe(Base):
     ingredients: Mapped[str] = mapped_column(Text)
     instructions: Mapped[str] = mapped_column(Text)
     cover_image_idx: Mapped[int] = mapped_column(Integer)
+    cover_image_paths: Mapped[str] = mapped_column(
+        Text, nullable=True
+    )  # New field to store JSON string of paths
     tiktok_username: Mapped[str] = mapped_column(String(64), nullable=True)
     tiktok_video_id: Mapped[str] = mapped_column(String(32), nullable=True)
     user = relationship("User", back_populates="recipes")

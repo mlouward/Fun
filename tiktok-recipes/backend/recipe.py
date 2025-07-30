@@ -7,16 +7,17 @@ import os
 import re
 from typing import Any, Optional
 
-from auth import ALGORITHM, SECRET_KEY
-from celery_app import celery_app
 from fastapi import APIRouter, Body, Depends, HTTPException, Query
 from fastapi.responses import JSONResponse, StreamingResponse
 from fastapi.security import OAuth2PasswordBearer
 from jose import JWTError, jwt
-from models import AsyncSessionLocal, Recipe, User
 from pydantic import BaseModel
 from sqlalchemy import and_, select
 from sqlalchemy.ext.asyncio import AsyncSession
+
+from auth import ALGORITHM, SECRET_KEY
+from celery_app import celery_app
+from models import AsyncSessionLocal, Recipe, User
 
 # Set up basic logging
 logging.basicConfig(level=logging.INFO)
@@ -35,6 +36,7 @@ class RecipeCreate(BaseModel):
     ingredients: str
     instructions: str
     cover_image_idx: int
+    cover_image_paths: Optional[list[str]] = None
 
 
 class ProcessRequest(BaseModel):
@@ -98,26 +100,6 @@ async def get_user_recipe(
     return None
 
 
-def get_cover_images_from_disk(user_id: int, tiktok_video_id: str, base_dir: str = "data") -> list:
-    """
-    Return the list of base64-encoded image strings for a given user and tiktok_video_id.
-    """
-    dir_path = f"{base_dir}/{user_id}/{tiktok_video_id}"
-    if not os.path.exists(dir_path):
-        return []
-    files = [f for f in os.listdir(dir_path) if f.startswith("cover_") and f.endswith(".jpg")]
-    files.sort()
-    images = []
-    for f in files:
-        try:
-            with open(os.path.join(dir_path, f), "rb") as imgf:
-                img_bytes = imgf.read()
-                images.append(base64.b64encode(img_bytes).decode("utf-8"))
-        except Exception:
-            images.append(None)
-    return images
-
-
 @router.post("/", response_model=RecipeCreate)
 async def create_recipe(
     recipe: RecipeCreate,
@@ -147,7 +129,7 @@ async def list_recipes(
     recipes = result.scalars().all()
     out = []
     for r in recipes:
-        cover_images_b64 = get_cover_images_from_disk(r.user_id, r.tiktok_video_id)
+        cover_image_paths_from_db = json.loads(r.cover_image_paths) if r.cover_image_paths else []
         out.append(
             {
                 "title": r.title,
@@ -159,7 +141,7 @@ async def list_recipes(
                 "cover_image_idx": r.cover_image_idx,
                 "tiktok_username": r.tiktok_username,
                 "tiktok_video_id": r.tiktok_video_id,
-                "cover_images": cover_images_b64,
+                "cover_image_paths": cover_image_paths_from_db,
             }
         )
     return JSONResponse(content={"total": total_count, "recipes": out})
@@ -194,6 +176,7 @@ async def update_recipe(
     current_user: User = Depends(get_current_user),
 ):
     try:
+        logger.info(f"[update_recipe] Received data: {data}")
         tiktok_username = data.get("tiktok_username")
         tiktok_video_id = data.get("tiktok_video_id")
         title = data.get("title")
@@ -228,6 +211,7 @@ async def update_recipe(
                 else 0,
                 "tiktok_username": getattr(recipe, "tiktok_username", None),
                 "tiktok_video_id": getattr(recipe, "tiktok_video_id", None),
+                "cover_image_paths": json.loads(getattr(recipe, "cover_image_paths", "[]")),
             },
         }
     except Exception as e:
