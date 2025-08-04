@@ -22,6 +22,7 @@ import type { RecipeData } from "./RecipeForm";
 import "./App.css";
 import Snackbar from "@mui/material/Snackbar";
 import MuiAlert, { type AlertColor } from "@mui/material/Alert";
+import JSZip from "jszip";
 
 function App() {
     const [error, setError] = useState<string | null>(null);
@@ -316,6 +317,14 @@ function App() {
                             setSidebarOpen(false);
                         }}
                         onClose={() => setSidebarOpen(false)}
+                        onLogout={() => {
+                            setToken(null);
+                            localStorage.removeItem("authToken");
+                            setSidebarOpen(false);
+                            setToastMsg("You have been logged out.");
+                            setToastSeverity("info");
+                            setToastOpen(true);
+                        }}
                     />
                 )}
                 <Snackbar
@@ -419,6 +428,114 @@ function App() {
                                     setPage(1);
                                 }}
                                 onViewRecipe={handleViewRecipe}
+                                onBulkDelete={async (indices) => {
+                                    if (indices.length === 0) return;
+                                    setLoading(true);
+                                    try {
+                                        for (const idx of indices) {
+                                            const r = recipes[idx];
+                                            await fetchWithAuth(
+                                                "/api/recipes/delete_recipe",
+                                                {
+                                                    method: "DELETE",
+                                                    headers: {
+                                                        "Content-Type":
+                                                            "application/json",
+                                                    },
+                                                    body: JSON.stringify({
+                                                        tiktok_username:
+                                                            r.tiktok_username,
+                                                        tiktok_video_id:
+                                                            r.tiktok_video_id,
+                                                        title: r.title,
+                                                    }),
+                                                }
+                                            );
+                                        }
+                                        setToastMsg(
+                                            "Selected recipes deleted."
+                                        );
+                                        setToastSeverity("success");
+                                        setToastOpen(true);
+                                        fetchRecipesPaginated(page, pageSize);
+                                    } catch (e) {
+                                        setToastMsg(
+                                            "Failed to delete some recipes."
+                                        );
+                                        setToastSeverity("error");
+                                        setToastOpen(true);
+                                    } finally {
+                                        setLoading(false);
+                                    }
+                                }}
+                                onBulkExport={async (indices) => {
+                                    if (indices.length === 0) return;
+                                    setLoading(true);
+                                    try {
+                                        const zip = new JSZip();
+                                        for (const idx of indices) {
+                                            const r = recipes[idx];
+                                            const photo_data =
+                                                await getCoverImageBase64(
+                                                    r.cover_image_paths,
+                                                    r.cover_image_idx
+                                                );
+                                            const exportData = { ...r };
+                                            if (photo_data)
+                                                exportData.photo_data =
+                                                    photo_data;
+                                            const resp = await fetchWithAuth(
+                                                `/api/recipes/export_paprika`,
+                                                {
+                                                    method: "POST",
+                                                    headers: {
+                                                        "Content-Type":
+                                                            "application/json",
+                                                    },
+                                                    body: JSON.stringify(
+                                                        exportData
+                                                    ),
+                                                }
+                                            );
+                                            if (resp.ok) {
+                                                const blob = await resp.blob();
+                                                zip.file(
+                                                    `${
+                                                        r.title || "recipe"
+                                                    }.paprikarecipe`,
+                                                    blob
+                                                );
+                                            }
+                                        }
+                                        const zipBlob = await zip.generateAsync(
+                                            { type: "blob" }
+                                        );
+                                        const url =
+                                            URL.createObjectURL(zipBlob);
+                                        const a = document.createElement("a");
+                                        a.href = url;
+                                        a.download = "bulk.paprikarecipes";
+                                        document.body.appendChild(a);
+                                        a.click();
+                                        setTimeout(() => {
+                                            document.body.removeChild(a);
+                                            URL.revokeObjectURL(url);
+                                        }, 100);
+                                        setToastMsg(
+                                            "Selected recipes exported to Paprika."
+                                        );
+                                        setToastSeverity("success");
+                                        setToastOpen(true);
+                                    } catch (e) {
+                                        setToastMsg(
+                                            "Failed to export some recipes."
+                                        );
+                                        setToastSeverity("error");
+                                        setToastOpen(true);
+                                    } finally {
+                                        setLoading(false);
+                                    }
+                                }}
                             />
                         ) : (
                             <>
@@ -472,6 +589,51 @@ function App() {
             </Box>
         </ThemeProvider>
     );
+}
+
+export async function getCoverImageBase64(
+    paths: string[] | undefined,
+    idx: number | undefined,
+    onError?: (msg: string) => void
+): Promise<string | undefined> {
+    if (!paths || typeof idx !== "number" || idx < 0 || idx >= paths.length) {
+        const msg = `Invalid image paths or index: paths=${JSON.stringify(
+            paths
+        )}, idx=${idx}`;
+        console.error(msg);
+        if (onError) onError(msg);
+        return undefined;
+    }
+    const imgPath = `/images/${paths[idx]}`;
+    try {
+        const imgResp = await fetch(imgPath);
+        if (imgResp.ok) {
+            const imgBlob = await imgResp.blob();
+            const reader = new FileReader();
+            return await new Promise((resolve, reject) => {
+                reader.onloadend = () => {
+                    const base64 = reader.result?.toString().split(",")[1];
+                    resolve(base64);
+                };
+                reader.onerror = (e) => {
+                    const msg = `FileReader error for image ${imgPath}: ${e}`;
+                    console.error(msg);
+                    if (onError) onError(msg);
+                    reject(e);
+                };
+                reader.readAsDataURL(imgBlob);
+            });
+        } else {
+            const msg = `Image fetch failed: ${imgPath}, status=${imgResp.status}`;
+            console.error(msg);
+            if (onError) onError(msg);
+        }
+    } catch (e) {
+        const msg = `Image fetch error: ${imgPath}, error=${e}`;
+        console.error(msg);
+        if (onError) onError(msg);
+    }
+    return undefined;
 }
 
 export default App;

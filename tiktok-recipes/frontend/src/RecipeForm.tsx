@@ -15,6 +15,7 @@ import KeyboardBackspaceIcon from "@mui/icons-material/KeyboardBackspace";
 import { marked } from "marked";
 import { confirmAlert } from "react-confirm-alert";
 import "react-confirm-alert/src/react-confirm-alert.css";
+import { getCoverImageBase64 } from "./App";
 
 interface RecipeFormProps {
     recipe: RecipeData;
@@ -37,6 +38,7 @@ export interface RecipeData {
     tiktok_username?: string;
     tiktok_video_id?: string;
     source_url?: string;
+    photo_data?: string; // base64 image data for export
 }
 
 const RecipeForm: React.FC<RecipeFormProps> = ({
@@ -94,10 +96,19 @@ const RecipeForm: React.FC<RecipeFormProps> = ({
 
     const handleExportPaprika = async () => {
         try {
+            const photo_data = await getCoverImageBase64(
+                images,
+                form.cover_image_idx
+            );
+            const exportData = { ...recipe };
+            if (photo_data) exportData.photo_data = photo_data;
+            else {
+                console.warn("No cover image data available for export");
+            }
             const resp = await fetchWithAuth(`/api/recipes/export_paprika`, {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
-                body: JSON.stringify(recipe),
+                body: JSON.stringify(exportData),
             });
             if (!resp.ok) throw new Error("Failed to export Paprika file");
             const blob = await resp.blob();

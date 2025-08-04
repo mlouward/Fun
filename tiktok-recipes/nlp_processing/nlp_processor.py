@@ -82,16 +82,17 @@ def build_prompt(transcript: str) -> str:
 
     prompt = f"""
 <|system|>
-You are an expert recipe extraction AI. Your task is to analyze the provided recipe transcript and accurately extract the information into a structured JSON format.
+You are an expert recipe extraction AI. Your task is to analyze the provided recipe information and accurately extract it into a structured JSON format.
 
 You must adhere to the following rules:
 1.  **JSON Output Only**: Your entire output must be a single, valid JSON object. Do not include any text or explanations before or after the JSON.
 2.  **Strict Schema**: The JSON object must strictly conform to the following schema. Do not add any extra fields.
-3.  **Accurate Extraction**: Extract measurements, ingredients, and steps precisely as mentioned in the transcript.
+3.  **Accurate Extraction**: Extract measurements, ingredients, and steps precisely as mentioned in the information.
 4.  **Data Types**: Ensure all fields have the correct data type as specified in the schema (e.g., 'servings' must be an integer).
 5.  **Formatting**:
     - `ingredients`: List each ingredient with its measurement on a new line (use '\n').
     - `directions`: Number each step and list it on a new line (e.g., "1. First step.\n2. Second step.").
+6. Prioritize the information in the description rather than in the transcript if they conflict.
 
 **JSON Schema to Follow:**
 ```json
@@ -100,9 +101,8 @@ You must adhere to the following rules:
 <|end|>
 
 <|user|>
-Here is the recipe transcript. Please extract the information into the specified JSON format.
+Here is the recipe information. Please extract the information into the specified JSON format.
 
-**Transcript:**
 {transcript}
 <|end|>
 
@@ -132,8 +132,9 @@ def extract_recipe_info(transcript: str) -> dict:
     generation_args = {
         "max_new_tokens": 1024,
         "return_full_text": False,
-        "temperature": 0.0,
+        "temperature": 0.01,
         "do_sample": False,
+        "repetition_penalty": 1.1,
     }
 
     try:

@@ -236,6 +236,10 @@ async def export_paprika(
         "ingredients": recipe.ingredients,
         "directions": recipe.instructions,
     }
+    # If photo_data is provided, include it in the export
+    photo_data = data.get("photo_data")
+    if photo_data:
+        paprika_dict["photo_data"] = photo_data
     paprika_json = io.BytesIO()
     with gzip.GzipFile(fileobj=paprika_json, mode="wb") as gz:
         gz.write(bytes(json.dumps(paprika_dict, indent=2), "utf-8"))

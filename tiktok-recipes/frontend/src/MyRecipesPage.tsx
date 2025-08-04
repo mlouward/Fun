@@ -1,5 +1,15 @@
-import React from "react";
-import { Box, Select, MenuItem, Pagination, Typography } from "@mui/material";
+import React, { useState } from "react";
+import {
+    Box,
+    Select,
+    MenuItem,
+    Pagination,
+    Typography,
+    Checkbox,
+    Button,
+} from "@mui/material";
+import { confirmAlert } from "react-confirm-alert";
+import "react-confirm-alert/src/react-confirm-alert.css";
 import type { RecipeData } from "./RecipeForm";
 import "./App.css";
 
@@ -11,6 +21,8 @@ interface MyRecipesPageProps {
     onPageChange: (page: number) => void;
     onPageSizeChange: (size: number) => void;
     onViewRecipe: (idx: number) => void;
+    onBulkDelete: (indices: number[]) => void;
+    onBulkExport: (indices: number[]) => void;
 }
 
 const MyRecipesPage: React.FC<MyRecipesPageProps> = ({
@@ -21,27 +33,91 @@ const MyRecipesPage: React.FC<MyRecipesPageProps> = ({
     onPageChange,
     onPageSizeChange,
     onViewRecipe,
+    onBulkDelete,
+    onBulkExport,
 }) => {
+    const [selected, setSelected] = useState<number[]>([]);
     const pageCount = Math.ceil(total / pageSize);
+    const allSelected =
+        recipes.length > 0 && selected.length === recipes.length;
+
+    const handleSelect = (idx: number) => {
+        setSelected((prev) =>
+            prev.includes(idx) ? prev.filter((i) => i !== idx) : [...prev, idx]
+        );
+    };
+    const handleSelectAll = () => {
+        setSelected(allSelected ? [] : recipes.map((_, idx) => idx));
+    };
+    const handleBulkDelete = () => {
+        confirmAlert({
+            title: "Confirm Bulk Delete",
+            message: `Are you sure you want to delete ${selected.length} recipes? This cannot be undone!`,
+            buttons: [
+                { label: "Yes, Delete", onClick: () => onBulkDelete(selected) },
+                { label: "Cancel" },
+            ],
+        });
+    };
+    const handleBulkExport = () => {
+        onBulkExport(selected);
+    };
     return (
-        <Box sx={{
-            width: '90%',
-            maxWidth: { xs: '90vw', sm: 600 }, // Use 90vw for xs, 600px for sm and up
-            mx: 'auto',
-            p: { xs: 0, md: 2 } // Add some padding for desktop if needed
-        }}>
+        <Box
+            sx={{
+                width: "90%",
+                maxWidth: { xs: "90vw", sm: 600 },
+                mx: "auto",
+                p: { xs: 0, md: 2 },
+            }}
+        >
             <Typography
                 variant="h5"
                 sx={{ color: "var(--primary-color)", mb: 3 }}
             >
                 My Recipes
             </Typography>
+            {selected.length > 0 && (
+                <Box sx={{ display: "flex", gap: 2, mb: 2 }}>
+                    <Button
+                        variant="outlined"
+                        color="error"
+                        onClick={handleBulkDelete}
+                    >
+                        Delete Selected
+                    </Button>
+                    <Button
+                        variant="contained"
+                        color="primary"
+                        onClick={handleBulkExport}
+                    >
+                        Export to Paprika
+                    </Button>
+                </Box>
+            )}
             {recipes.length === 0 ? (
                 <Typography sx={{ color: "var(--light-text-color)" }}>
                     No recipes found.
                 </Typography>
             ) : (
                 <ul style={{ listStyle: "none", padding: 0, margin: 0 }}>
+                    <li
+                        style={{
+                            display: "flex",
+                            alignItems: "center",
+                            marginBottom: 12,
+                        }}
+                    >
+                        <Checkbox
+                            checked={allSelected}
+                            indeterminate={selected.length > 0 && !allSelected}
+                            onChange={handleSelectAll}
+                            sx={{ ml: 1 }}
+                        />
+                        <Typography variant="body2" sx={{ fontWeight: 600 }}>
+                            Select All
+                        </Typography>
+                    </li>
                     {recipes.map((r, idx) => (
                         <li
                             key={idx}
@@ -58,10 +134,16 @@ const MyRecipesPage: React.FC<MyRecipesPageProps> = ({
                                 gap: 12,
                                 minHeight: 64,
                             }}
-                            onClick={() => onViewRecipe(idx)}
                         >
+                            <Checkbox
+                                checked={selected.includes(idx)}
+                                onClick={(e) => e.stopPropagation()}
+                                onChange={() => handleSelect(idx)}
+                                sx={{ ml: 1 }}
+                            />
                             {/* Thumbnail image */}
-                            {r.cover_image_paths && r.cover_image_paths.length > 0 ? (
+                            {r.cover_image_paths &&
+                            r.cover_image_paths.length > 0 ? (
                                 (() => {
                                     const selectedIdx =
                                         typeof r.cover_image_idx === "number" &&
@@ -108,7 +190,10 @@ const MyRecipesPage: React.FC<MyRecipesPageProps> = ({
                                     🥣
                                 </div>
                             )}
-                            <div style={{ flex: 1, minWidth: 0 }}>
+                            <div
+                                style={{ flex: 1, minWidth: 0 }}
+                                onClick={() => onViewRecipe(idx)}
+                            >
                                 <span
                                     className="recipe-card-title"
                                     style={{

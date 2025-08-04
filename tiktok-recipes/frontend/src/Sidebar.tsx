@@ -5,6 +5,7 @@ import {
     ListItem,
     ListItemButton,
     ListItemText,
+    Button,
 } from "@mui/material";
 
 interface SidebarProps {
@@ -14,6 +15,7 @@ interface SidebarProps {
     onHome: () => void;
     onMyRecipes: () => void;
     onClose: () => void;
+    onLogout: () => void;
 }
 
 const Sidebar: React.FC<SidebarProps> = ({
@@ -23,6 +25,7 @@ const Sidebar: React.FC<SidebarProps> = ({
     onHome,
     onMyRecipes,
     onClose,
+    onLogout,
 }) => (
     <Drawer
         variant={isDesktop ? "permanent" : "temporary"}
@@ -87,6 +90,22 @@ const Sidebar: React.FC<SidebarProps> = ({
                     </ListItemButton>
                 </ListItem>
             </List>
+            <Box sx={{ flexGrow: 1 }} />
+            <Button
+                variant="outlined"
+                color="primary"
+                onClick={onLogout}
+                sx={{
+                    width: "90%",
+                    mb: 2,
+                    alignSelf: "center",
+                    borderColor: "#ff3b5c",
+                    color: "#ff3b5c",
+                    fontWeight: 700,
+                }}
+            >
+                Logout
+            </Button>
         </Box>
     </Drawer>
 );

@@ -1,3 +1,4 @@
+import asyncio
 import json
 import logging
 import os
@@ -85,12 +86,11 @@ async def _process_recipe_async(user_id, url) -> Literal[True]:
 
 
 @celery_app.task
-async def process_tiktok_recipe(user_id, url) -> Literal[True]:
+def process_tiktok_recipe(user_id, url) -> bool:
     """
-    Synchronous Celery task that wraps the async processing logic.
-    This avoids conflicts between the gevent pool and asyncio.
+    Celery task that runs the async processing logic in a synchronous context.
     """
-    return await _process_recipe_async(user_id, url)
+    return asyncio.run(_process_recipe_async(user_id, url))
 
 
 # Helper: save cover images to disk

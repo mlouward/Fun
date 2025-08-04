@@ -68,8 +68,5 @@ RUN playwright install --with-deps chromium
 # Copy the application code
 COPY . .
 
-# Set the environment variable for the models cache
-ENV MODELS_CACHE_DIR=/models
-
 # Command to run the Celery worker
 CMD ["celery", "-A", "worker.celery_worker.celery_app", "worker", "--loglevel=info", "--pool=gevent"]

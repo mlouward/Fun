@@ -74,7 +74,6 @@ services:
             - ./nlp_processing:/app
             - ./backend/models.py:/app/models.py
             - ./data:/data
-            - ./backend/audio_files:/app/audio_files
         env_file:
             - .env
         environment:
