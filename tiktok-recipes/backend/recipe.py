@@ -235,6 +235,11 @@ async def export_paprika(
         "cook_time": recipe.cook_time,
         "ingredients": recipe.ingredients,
         "directions": recipe.instructions,
+        # Add TikTok URL as description
+        "source_url": f"https://www.tiktok.com/@{recipe.tiktok_username}/video/{recipe.tiktok_video_id}"
+        if recipe.tiktok_username and recipe.tiktok_video_id
+        else "",
+        "source": "TikTok",
     }
     # If photo_data is provided, include it in the export
     photo_data = data.get("photo_data")
