@@ -17,9 +17,7 @@ class Track:
 
     def to_searchable(self) -> str:
         """Return a search-friendly version of the track title."""
-        title = self.clean_title()
-        # if the title is short, append the artist name for better search results
-        return title if len(title) > 8 else f"{title} {self.artist.strip().lower()}"
+        return f"{self.clean_title()} {self.artist.strip().lower()}"
 
 
 @dataclass
