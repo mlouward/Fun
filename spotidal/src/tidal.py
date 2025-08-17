@@ -12,7 +12,7 @@ from rich.progress import track as progress_tracker
 from tidalapi import Session, media
 from tidalapi.playlist import UserPlaylist
 
-from models import Playlist, Track
+from models import Playlist, Track, clean_title
 
 load_dotenv()
 
@@ -26,7 +26,7 @@ CLIENT_SECRET = os.getenv("TIDAL_CLIENT_SECRET")
 SESSION_FILE = Path("data/tidal_session.json")
 
 logging.basicConfig(
-    filename=Path("logs/tidal_auth.log"),
+    filename=Path("logs/tidal.log"),
     level=logging.INFO,
     format="%(asctime)s %(levelname)s %(message)s",
 )
@@ -46,7 +46,7 @@ def authenticate_tidal() -> Session | None:
     except Exception as e:
         logging.error(f"Authentication failed: {e}")
         print(
-            "[bold red]Authentication failed. Check tidal_auth.log for details.[/bold red]"
+            "[bold red]Authentication failed. Check tidal.log for details.[/bold red]"
         )
         return None
 
@@ -133,7 +133,7 @@ def create_tidal_playlist(session: Session, playlist: Playlist) -> str | None:
         return None
 
 
-def fuzzy_match(a: str, b: str, threshold: float = 0.7) -> bool:
+def fuzzy_match(a: str, b: str, threshold: float = 0.6) -> bool:
     """
     Return True if the similarity ratio between a and b is above the threshold.
     """
@@ -156,11 +156,13 @@ def search_tidal_track(session: Session, track: Track) -> str | None:
     """
     try:
         results = session.search(track.to_searchable(), models=[media.Track])
-        for result in results["tracks"]:
+        for result in [results["top_hit"], *results["tracks"]]:
             if not (result.full_name and result.artist and result.artist.name):
                 logging.warning(f"Track data incomplete: {result.full_name}")
                 continue
-            title_match = fuzzy_match(result.full_name, track.clean_title())
+            title_match = fuzzy_match(
+                clean_title(result.full_name), track.clean_title()
+            )
             artist_match = fuzzy_match(result.artist.name, track.artist)
             if title_match and artist_match:
                 logging.info(
@@ -318,9 +320,7 @@ def main():
         print_missing_tracks(all_missing_tracks)
     except Exception as e:
         logging.error(f"Migration failed: {e}")
-        print(
-            "[bold red]Migration failed. Check tidal_auth.log for details.[/bold red]"
-        )
+        print("[bold red]Migration failed. Check tidal.log for details.[/bold red]")
         return
 
 
