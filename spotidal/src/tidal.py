@@ -1,13 +1,16 @@
 import json
 import logging
 import os
+from difflib import SequenceMatcher
 from pathlib import Path
 from typing import Any
 
 from dotenv import load_dotenv
 from rich import print
-from rich.progress import Progress
-from tidalapi import Session, artist, media
+from rich.progress import Progress, TaskID
+from rich.progress import track as progress_tracker
+from tidalapi import Session, media
+from tidalapi.playlist import UserPlaylist
 
 from models import Playlist, Track
 
@@ -19,6 +22,8 @@ AUTHORIZATION_ENDPOINT = "https://login.tidal.com/authorize"
 TOKEN_ENDPOINT = "https://auth.tidal.com/v1/oauth2/token"
 CLIENT_ID = os.getenv("TIDAL_CLIENT_ID")
 CLIENT_SECRET = os.getenv("TIDAL_CLIENT_SECRET")
+
+SESSION_FILE = Path("data/tidal_session.json")
 
 logging.basicConfig(
     filename=Path("logs/tidal_auth.log"),
@@ -46,6 +51,39 @@ def authenticate_tidal() -> Session | None:
         return None
 
 
+def save_tidal_session(session: Session, session_file: Path = SESSION_FILE) -> None:
+    """
+    Save the current Tidal session to a file.
+    """
+    try:
+        session.save_session_to_file(session_file)
+        logging.info(f"Tidal session saved to {session_file}")
+    except Exception as e:
+        logging.error(f"Failed to save Tidal session: {e}")
+        print(f"[bold red]Failed to save Tidal session: {e}[/bold red]")
+
+
+def load_tidal_session(session_file: Path = SESSION_FILE) -> Session | None:
+    """
+    Load a Tidal session from a file, or return None if not valid.
+    """
+    session = Session()
+    try:
+        ok = session.login_session_file(session_file, do_pkce=True)
+        if ok:
+            logging.info(f"Loaded Tidal session from {session_file}")
+            return session
+        else:
+            logging.warning(f"Session file {session_file} invalid, login required.")
+            return None
+    except Exception as e:
+        logging.error(f"Failed to load Tidal session: {e}")
+        print(
+            "[bold yellow]No valid Tidal session found, login required.[/bold yellow]"
+        )
+        return None
+
+
 def load_spotify_data(json_path: str | Path) -> tuple[list[Playlist], list[Track]]:
     """
     Load playlists and liked tracks from the Spotify export JSON file.
@@ -68,7 +106,7 @@ def load_spotify_data(json_path: str | Path) -> tuple[list[Playlist], list[Track
     liked_tracks = [Track(**t) for t in data.get("liked_tracks", [])]
     # Spotify tracks are in decreasing date order, so we reverse it since
     # we want to preserve the order of addition in Tidal
-    return [p.reverse() for p in playlists], liked_tracks[::-1]
+    return playlists, liked_tracks[::-1]
 
 
 def create_tidal_playlist(session: Session, playlist: Playlist) -> str | None:
@@ -95,9 +133,19 @@ def create_tidal_playlist(session: Session, playlist: Playlist) -> str | None:
         return None
 
 
+def fuzzy_match(a: str, b: str, threshold: float = 0.7) -> bool:
+    """
+    Return True if the similarity ratio between a and b is above the threshold.
+    """
+    ratio = SequenceMatcher(None, a.lower(), b.lower(), False).ratio()
+    if ratio < threshold:
+        logging.warning(f"Fuzzy match failed: '{a}' vs '{b}' (ratio: {ratio})")
+    return ratio >= threshold
+
+
 def search_tidal_track(session: Session, track: Track) -> str | None:
     """
-    Search for a track in Tidal by title and artist.
+    Search for a track in Tidal by title and artist using fuzzy matching.
 
     Args:
         session (Session): Authenticated Tidal session.
@@ -107,14 +155,14 @@ def search_tidal_track(session: Session, track: Track) -> str | None:
         str | None: The ID of the found track, or None if not found.
     """
     try:
-        results = session.search(track.title, models=[media.Track, artist.Artist])
+        results = session.search(track.to_searchable(), models=[media.Track])
         for result in results["tracks"]:
-            assert result.full_name and result.artist and result.artist.name, (
-                "Track data incomplete"
-            )
-            if result.full_name.lower() == track.title.lower() and (
-                result.artist.name.lower() == track.artist.lower()
-            ):
+            if not (result.full_name and result.artist and result.artist.name):
+                logging.warning(f"Track data incomplete: {result.full_name}")
+                continue
+            title_match = fuzzy_match(result.full_name, track.clean_title())
+            artist_match = fuzzy_match(result.artist.name, track.artist)
+            if title_match and artist_match:
                 logging.info(
                     f"Found track '{track.title}' by '{track.artist}' (ID: {result.id})"
                 )
@@ -129,7 +177,11 @@ def search_tidal_track(session: Session, track: Track) -> str | None:
 
 
 def add_tracks_to_tidal_playlist(
-    session: Session, playlist_id: str, tracks: list[Track]
+    session: Session,
+    playlist_id: str,
+    tracks: list[Track],
+    progress: Progress,
+    task: TaskID,
 ) -> list[Track]:
     """
     Add tracks to a Tidal playlist. Returns a list of missing tracks.
@@ -143,43 +195,26 @@ def add_tracks_to_tidal_playlist(
         list[Track]: Tracks not found in Tidal.
     """
     missing_tracks: list[Track] = []
+    tidal_playlist = session.playlist(playlist_id).factory()
+    if not isinstance(tidal_playlist, UserPlaylist):
+        logging.error(
+            f"Playlist {playlist_id} is not a UserPlaylist, cannot add tracks."
+        )
+        return tracks  # All tracks are missing if we can't add
+    track_ids: list[str] = []
     for track in tracks:
         track_id = search_tidal_track(session, track)
         if track_id:
-            try:
-                session.user.add_playlist_tracks(playlist_id, [track_id])  # pyright:ignore
-                logging.info(f"Added track '{track.title}' to playlist {playlist_id}")
-            except Exception as e:
-                logging.error(
-                    f"Failed to add track '{track.title}' to playlist {playlist_id}: {e}"
-                )
+            track_ids.append(track_id)
         else:
             missing_tracks.append(track)
-    return missing_tracks
-
-
-def like_tidal_tracks(session: Session, tracks: list[Track]) -> list[Track]:
-    """
-    Like tracks in Tidal. Returns a list of missing tracks.
-
-    Args:
-        session (Session): Authenticated Tidal session.
-        tracks (list[Track]): List of tracks to like.
-
-    Returns:
-        list[Track]: Tracks not found in Tidal.
-    """
-    missing_tracks: list[Track] = []
-    for track in tracks:
-        track_id = search_tidal_track(session, track)
-        if track_id:
-            try:
-                session.user.favorite_track(track_id)  # pyright:ignore
-                logging.info(f"Liked track '{track.title}' in Tidal.")
-            except Exception as e:
-                logging.error(f"Failed to like track '{track.title}': {e}")
-        else:
-            missing_tracks.append(track)
+        progress.update(task, advance=1, description=f"Adding track: {track.title}")
+    if track_ids:
+        try:
+            tidal_playlist.add(track_ids)
+            logging.info(f"Added {len(track_ids)} tracks to playlist {playlist_id}")
+        except Exception as e:
+            logging.error(f"Failed to add tracks to playlist {playlist_id}: {e}")
     return missing_tracks
 
 
@@ -190,30 +225,17 @@ def migrate_playlists(
     Create Tidal playlists and add tracks, returning missing tracks per playlist.
     """
     all_missing_tracks: dict[str, list[Track]] = {}
-    for playlist in playlists:
+    for playlist in progress_tracker(playlists):
         print(f"[bold green]Creating Tidal playlist:[/bold green] {playlist.name}")
         playlist_id = create_tidal_playlist(session, playlist)
         if playlist_id:
-            missing: list[Track] = []
             with Progress() as progress:
                 task = progress.add_task(
                     f"Adding tracks to '{playlist.name}'", total=len(playlist.tracks)
                 )
-                for track in playlist.tracks:
-                    track_id = search_tidal_track(session, track)
-                    if track_id:
-                        try:
-                            session.user.add_playlist_tracks(playlist_id, [track_id])  # pyright:ignore
-                            logging.info(
-                                f"Added track '{track.title}' to playlist {playlist_id}"
-                            )
-                        except Exception as e:
-                            logging.error(
-                                f"Failed to add track '{track.title}' to playlist {playlist_id}: {e}"
-                            )
-                    else:
-                        missing.append(track)
-                    progress.update(task, advance=1)
+                missing = add_tracks_to_tidal_playlist(
+                    session, playlist_id, playlist.tracks, progress, task
+                )
             if missing:
                 print(
                     f"[bold yellow]Missing tracks in playlist '{playlist.name}':[/bold yellow] {len(missing)}"
@@ -239,7 +261,7 @@ def migrate_liked_tracks(session: Session, liked_tracks: list[Track]) -> list[Tr
             track_id = search_tidal_track(session, track)
             if track_id:
                 try:
-                    session.user.favorite_track(track_id)  # pyright:ignore
+                    session.user.favorites.add_track(track_id)  # pyright:ignore
                     logging.info(f"Liked track '{track.title}' in Tidal.")
                 except Exception as e:
                     logging.error(f"Failed to like track '{track.title}': {e}")
@@ -271,28 +293,28 @@ def print_missing_tracks(all_missing_tracks: dict[str, list[Track]]):
 
 
 def main():
-    session = authenticate_tidal()
+    session = load_tidal_session()
     if not session:
-        print("[bold red]Failed to authenticate with Tidal.[/bold red]")
-        return
+        session = authenticate_tidal()
+        if not session:
+            return
+        save_tidal_session(session)
     print("[bold blue]Loading Spotify data...[/bold blue]")
-    # Path relative to the project root
     spotify_data_path = Path("data/spotify_data.json")
     if not spotify_data_path.exists():
         print(f"[bold red]Spotify data file not found: {spotify_data_path}[/bold red]")
         return
-
     playlists, liked_tracks = load_spotify_data(spotify_data_path)
     print(
         f"[bold blue]Found {len(playlists)} playlists and {len(liked_tracks)} liked tracks in Spotify data.[/bold blue]"
     )
-
     try:
         print("[bold green]Migrating playlists to Tidal...[/bold green]")
-        all_missing_tracks = migrate_playlists(session, playlists[:1])
-        # missing_liked = migrate_liked_tracks(session, liked_tracks)
-        # if missing_liked:
-        #     all_missing_tracks["liked_tracks"] = missing_liked
+        all_missing_tracks = migrate_playlists(session, playlists)
+        print("[bold green]Migrating liked tracks to Tidal...[/bold green]")
+        missing_liked_tracks = migrate_liked_tracks(session, liked_tracks)
+        if missing_liked_tracks:
+            all_missing_tracks["Liked Tracks"] = missing_liked_tracks
         print_missing_tracks(all_missing_tracks)
     except Exception as e:
         logging.error(f"Migration failed: {e}")
