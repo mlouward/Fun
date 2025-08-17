@@ -7,8 +7,7 @@ from typing import Any
 
 from dotenv import load_dotenv
 from rich import print
-from rich.progress import Progress, TaskID
-from rich.progress import track as progress_tracker
+from rich.progress import Progress, TaskID, TimeElapsedColumn
 from tidalapi import Session, media
 from tidalapi.playlist import UserPlaylist
 
@@ -227,27 +226,41 @@ def migrate_playlists(
     Create Tidal playlists and add tracks, returning missing tracks per playlist.
     """
     all_missing_tracks: dict[str, list[Track]] = {}
-    for playlist in progress_tracker(playlists):
-        print(f"[bold green]Creating Tidal playlist:[/bold green] {playlist.name}")
-        playlist_id = create_tidal_playlist(session, playlist)
-        if playlist_id:
-            with Progress() as progress:
-                task = progress.add_task(
-                    f"Adding tracks to '{playlist.name}'", total=len(playlist.tracks)
-                )
-                missing = add_tracks_to_tidal_playlist(
-                    session, playlist_id, playlist.tracks, progress, task
-                )
-            if missing:
+    with Progress(
+        *Progress.get_default_columns(), "Elapsed:", TimeElapsedColumn()
+    ) as progress_outer:
+        task = progress_outer.add_task(
+            "Migrating playlists", total=sum(len(p.tracks) for p in playlists)
+        )
+        for playlist in playlists:
+            print(f"[bold green]Creating Tidal playlist:[/bold green] {playlist.name}")
+            playlist_id = create_tidal_playlist(session, playlist)
+            if playlist_id:
+                with Progress(transient=True) as progress:
+                    task = progress.add_task(
+                        f"Adding tracks to '{playlist.name}'",
+                        total=len(playlist.tracks),
+                    )
+                    missing = add_tracks_to_tidal_playlist(
+                        session, playlist_id, playlist.tracks, progress, task
+                    )
+                if missing:
+                    print(
+                        f"[bold yellow]Missing tracks in playlist '{playlist.name}':[/bold yellow] {len(missing)}"
+                    )
+                    logging.warning(
+                        f"Some tracks could not be found in Tidal for playlist '{playlist.name}': {len(missing)}"
+                    )
+                    all_missing_tracks[playlist.name] = missing
+            else:
                 print(
-                    f"[bold yellow]Missing tracks in playlist '{playlist.name}':[/bold yellow] {len(missing)}"
+                    f"[bold red]Failed to create playlist: {playlist.name}[/bold red]"
                 )
-                logging.warning(
-                    f"Some tracks could not be found in Tidal for playlist '{playlist.name}': {len(missing)}"
-                )
-                all_missing_tracks[playlist.name] = missing
-        else:
-            print(f"[bold red]Failed to create playlist: {playlist.name}[/bold red]")
+            progress_outer.update(
+                task,
+                advance=len(playlist.tracks),
+                description=f"Finished: {playlist.name}",
+            )
     return all_missing_tracks
 
 
@@ -257,7 +270,9 @@ def migrate_liked_tracks(session: Session, liked_tracks: list[Track]) -> list[Tr
     """
     missing_liked: list[Track] = []
     print("[bold green]Liking tracks in Tidal...[/bold green]")
-    with Progress() as progress:
+    with Progress(
+        *Progress.get_default_columns(), "Elapsed:", TimeElapsedColumn()
+    ) as progress:
         task = progress.add_task("Liking tracks", total=len(liked_tracks))
         for track in liked_tracks:
             track_id = search_tidal_track(session, track)
