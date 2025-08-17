@@ -1,0 +1,18 @@
+[project]
+name = "spotidal"
+version = "0.1.0"
+description = "Export Spotify playlists to a JSON file, then import them into Tidal."
+readme = "README.md"
+requires-python = ">=3.13"
+dependencies = [
+    "python-dotenv>=1.1.1",
+    "rich>=14.1.0",
+    "spotipy>=2.25.1",
+    "tidalapi>=0.8.5",
+]
+
+[dependency-groups]
+dev = [
+    "ruff>=0.12.9",
+    "ty>=0.0.1a18",
+]
